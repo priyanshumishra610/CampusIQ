@@ -1,0 +1,44 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Grid pattern representing intelligence/data -->
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M38,38 L48,38 L48,48 L38,48 Z" />
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M52,38 L62,38 L62,48 L52,48 Z" />
+    <path
+        android:fillColor="#4A90C2"
+        android:pathData="M38,52 L48,52 L48,62 L38,62 Z" />
+    <path
+        android:fillColor="#4A90C2"
+        android:pathData="M52,52 L62,52 L62,62 L52,62 Z" />
+    <!-- IQ text -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,68 L44,86 L48,86 L48,68 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,68 L54,78 Q54,82 58,82 Q62,82 62,78 L62,68 L66,68 L66,78 Q66,86 58,86 Q50,86 50,78 L50,68 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M62,82 L70,90" 
+        android:strokeWidth="3"
+        android:strokeColor="#FFFFFF" />
+    <!-- Connection lines -->
+    <path
+        android:fillColor="#3D7AAA"
+        android:pathData="M48,43 L52,43 L52,47 L48,47 Z" />
+    <path
+        android:fillColor="#3D7AAA"
+        android:pathData="M43,48 L47,48 L47,52 L43,52 Z" />
+    <path
+        android:fillColor="#3D7AAA"
+        android:pathData="M53,48 L57,48 L57,52 L53,52 Z" />
+    <path
+        android:fillColor="#3D7AAA"
+        android:pathData="M48,53 L52,53 L52,57 L48,57 Z" />
+</vector>

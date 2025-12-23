@@ -1,0 +1,225 @@
+rules_version = '2';
+
+/**
+ * 🔐 CampusIQ Enterprise Security Rules
+ * 
+ * Zero-trust security model: Frontend is untrusted, all authorization happens server-side.
+ * These rules provide defense-in-depth by preventing obvious client-side attacks.
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function: Get authenticated user's profile
+    function getUserProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
+    // Helper function: Check if user has admin role
+    function isAdmin() {
+      let user = getUserProfile();
+      return user != null && user.data.role == 'ADMIN';
+    }
+    
+    // Helper function: Get user's adminRole
+    function getAdminRole() {
+      let user = getUserProfile();
+      return user != null ? user.data.adminRole : null;
+    }
+    
+    // Helper function: Check if user can perform action based on role
+    function hasPermission(permission) {
+      let role = getAdminRole();
+      // Permission checks are enforced server-side via Cloud Functions
+      // This is a basic sanity check - only admins can access admin resources
+      return isAdmin();
+    }
+    
+    // Helper function: Validate email domain (institutional emails only)
+    function isValidInstitutionalEmail(email) {
+      return email.matches('.*@.*\\.(edu|ac\\.in|edu\\.in)$');
+    }
+    
+    /**
+     * 👥 USERS COLLECTION
+     * 
+     * Security: Prevent role escalation, ensure only admins can read profiles
+     */
+    match /users/{userId} {
+      // Users can only read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Only admins can read other users (for task assignment, etc.)
+      allow read: if isAdmin();
+      
+      // Users can create their own profile during registration
+      // BUT: role and adminRole can ONLY be set by Cloud Functions
+      allow create: if request.auth != null 
+        && request.auth.uid == userId
+        && request.resource.data.role == 'USER'  // Prevent setting ADMIN role
+        && !('adminRole' in request.resource.data);  // Prevent setting adminRole
+      
+      // Users can update their own profile (name, department only)
+      // CRITICAL: role and adminRole are immutable from client
+      allow update: if request.auth != null 
+        && request.auth.uid == userId
+        && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
+        && (!('adminRole' in request.resource.data) || request.resource.data.adminRole == resource.data.adminRole)
+        && (!('email' in request.resource.data) || request.resource.data.email == resource.data.email);
+      
+      // Only Cloud Functions can update roles (via service account)
+      // This is enforced by not allowing role changes from authenticated users
+      
+      // No deletes allowed (soft delete via status field if needed)
+      allow delete: if false;
+    }
+    
+    /**
+     * 📋 ISSUES/TASKS COLLECTION
+     * 
+     * Security: Role-based access, prevent unauthorized status/priority changes
+     */
+    match /issues/{taskId} {
+      // Read access: Admins can read all, users can only read their own
+      allow read: if request.auth != null && (
+        isAdmin() || 
+        resource.data.createdBy == request.auth.uid
+      );
+      
+      // Create: Only admins can create tasks
+      // Validation happens in Cloud Function
+      allow create: if request.auth != null 
+        && isAdmin()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.status == 'NEW'  // Tasks must start as NEW
+        && request.resource.data.createdAt == request.time;  // Timestamp must be server-set
+      
+      // Update: Strict rules based on role
+      allow update: if request.auth != null && isAdmin() && (
+        // REGISTRAR: Can only update their own tasks, no status changes
+        (getAdminRole() == 'REGISTRAR' 
+          && resource.data.createdBy == request.auth.uid
+          && (!('status' in request.resource.data.diff(resource.data).affectedKeys()) 
+              || request.resource.data.status == resource.data.status)
+          && (!('priority' in request.resource.data.diff(resource.data).affectedKeys())
+              || request.resource.data.priority == resource.data.priority)
+        ) ||
+        // DEAN: Can update status to RESOLVED or ESCALATED, but not create/assign
+        (getAdminRole() == 'DEAN' 
+          && (request.resource.data.status == 'RESOLVED' 
+              || request.resource.data.status == 'ESCALATED'
+              || request.resource.data.status == resource.data.status)
+          && (!('assignedTo' in request.resource.data.diff(resource.data).affectedKeys()))
+        ) ||
+        // DIRECTOR: Full update permissions (validated in Cloud Function)
+        (getAdminRole() == 'DIRECTOR') ||
+        // EXECUTIVE: Read-only, no updates
+        false
+      );
+      
+      // Comments: Can be added by any admin (validated in Cloud Function)
+      // This is handled via the update rule above
+      
+      // Delete: Only DIRECTOR role (enforced in Cloud Function)
+      allow delete: if false;  // All deletes must go through Cloud Function
+    }
+    
+    /**
+     * 📝 AUDIT LOGS COLLECTION
+     * 
+     * Security: IMMUTABLE - Append-only, backend-only writes
+     */
+    match /auditLogs/{logId} {
+      // Read: Only admins can read audit logs
+      allow read: if request.auth != null && isAdmin();
+      
+      // Create: ONLY Cloud Functions can create audit logs
+      // Client-side writes are BLOCKED - this prevents tampering
+      allow create: if false;  // All audit logs must be created server-side
+      
+      // Update: NEVER allowed - audit logs are immutable
+      allow update: if false;
+      
+      // Delete: NEVER allowed - audit logs are append-only
+      allow delete: if false;
+    }
+    
+    /**
+     * 🚨 SECURITY EVENTS COLLECTION
+     * 
+     * Security: Backend-only, contains intrusion detection logs
+     */
+    match /securityEvents/{eventId} {
+      // Read: Only admins can read security events
+      allow read: if request.auth != null && isAdmin();
+      
+      // Create: ONLY Cloud Functions can create security events
+      allow create: if false;  // Backend-only
+      
+      // Update/Delete: NEVER allowed
+      allow update: if false;
+      allow delete: if false;
+    }
+    
+    /**
+     * ⏱️ RATE LIMIT TRACKING COLLECTION
+     * 
+     * Security: Backend-only, tracks user action rates
+     */
+    match /rateLimits/{userId} {
+      // No client access - this is internal only
+      allow read: if false;
+      allow write: if false;
+    }
+    
+    /**
+     * 📍 LOCATION PINGS COLLECTION
+     * 
+     * Security: Anonymous location pings for crowd intelligence
+     * - No PII stored
+     * - Aggregated immediately
+     * - Backend-only writes (via Cloud Function)
+     */
+    match /locationPings/{pingId} {
+      // No client reads - raw pings are not exposed
+      allow read: if false;
+      
+      // Create: Only via Cloud Function (rate-limited server-side)
+      // Clients can trigger via callable function, but direct writes blocked
+      allow create: if false;
+      
+      // No updates or deletes from client
+      allow update: if false;
+      allow delete: if false;
+    }
+    
+    /**
+     * 🔥 HEATMAP CELLS COLLECTION
+     * 
+     * Security: Aggregated crowd density data (admin-only read)
+     * - Contains no PII
+     * - Geohash-based aggregation (privacy-preserving)
+     * - Minimum threshold: 3+ devices per cell
+     */
+    match /heatmapCells/{cellId} {
+      // Read: Only admins can view heatmap data
+      allow read: if request.auth != null && isAdmin();
+      
+      // Write: Backend-only (via Cloud Functions)
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+    
+    /**
+     * 🔒 DEFAULT DENY
+     * 
+     * Any collection not explicitly defined above is denied
+     */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+
