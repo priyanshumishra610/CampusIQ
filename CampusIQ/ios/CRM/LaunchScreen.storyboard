@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="IconBox-1">
+                                <rect key="frame" x="143.5" y="220" width="88" height="88"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="IQ" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IQLabel-1">
+                                        <rect key="frame" x="22" y="30" width="44" height="28"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="24"/>
+                                        <color key="textColor" red="0.392" green="0.710" blue="0.965" alpha="1"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" red="0.118" green="0.227" blue="0.373" alpha="1"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="88" id="w-IconBox"/>
+                                    <constraint firstAttribute="height" constant="88" id="h-IconBox"/>
+                                    <constraint firstItem="IQLabel-1" firstAttribute="centerX" secondItem="IconBox-1" secondAttribute="centerX" id="cx-IQ"/>
+                                    <constraint firstItem="IQLabel-1" firstAttribute="centerY" secondItem="IconBox-1" secondAttribute="centerY" id="cy-IQ"/>
+                                </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <integer key="value" value="20"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </view>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="CampusIQ" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="GJd-Yh-RWb">
+                                <rect key="frame" x="0.0" y="328" width="375" height="32"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="26"/>
+                                <color key="textColor" red="0.91" green="0.933" blue="0.957" alpha="1"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="College Operations Intelligence" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="9" translatesAutoresizingMaskIntoConstraints="NO" id="MN2-I3-ftu">
+                                <rect key="frame" x="0.0" y="364" width="375" height="18"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                <color key="textColor" red="0.545" green="0.643" blue="0.737" alpha="1"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" red="0.047" green="0.071" blue="0.133" alpha="1"/>
+                        <constraints>
+                            <constraint firstItem="IconBox-1" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="cx-icon"/>
+                            <constraint firstItem="IconBox-1" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-70" id="cy-icon"/>
+                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="top" secondItem="IconBox-1" secondAttribute="bottom" constant="20" id="top-title"/>
+                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="lead-title"/>
+                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="trailing" secondItem="Bcu-3y-fUS" secondAttribute="trailing" id="trail-title"/>
+                            <constraint firstItem="MN2-I3-ftu" firstAttribute="top" secondItem="GJd-Yh-RWb" secondAttribute="bottom" constant="4" id="top-sub"/>
+                            <constraint firstItem="MN2-I3-ftu" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="lead-sub"/>
+                            <constraint firstItem="MN2-I3-ftu" firstAttribute="trailing" secondItem="Bcu-3y-fUS" secondAttribute="trailing" id="trail-sub"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="52.173913043478265" y="375"/>
+        </scene>
+    </scenes>
+</document>

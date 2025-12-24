@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusIQ Documentation</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            color: #2a3a4a;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e4e8ec;
+            margin-bottom: 30px;
+        }
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: #1e3a5f;
+            border-radius: 12px;
+            color: #64b5f6;
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 32px;
+            color: #0c1222;
+            margin: 0 0 8px 0;
+        }
+        .subtitle {
+            color: #5a6a7a;
+            font-size: 16px;
+        }
+        h2 {
+            color: #1e3a5f;
+            font-size: 22px;
+            margin-top: 40px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e4e8ec;
+        }
+        h3 {
+            color: #0c1222;
+            font-size: 18px;
+            margin-top: 24px;
+        }
+        a {
+            color: #1e3a5f;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            padding-left: 24px;
+        }
+        ul li {
+            padding: 6px 0;
+        }
+        pre, .code {
+            background: #f4f6f9;
+            padding: 16px;
+            border-left: 4px solid #1e3a5f;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            border-radius: 4px;
+            margin: 16px 0;
+        }
+        code {
+            background: #e8f0f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 13px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e4e8ec;
+        }
+        th {
+            background: #f4f6f9;
+            font-weight: 600;
+            color: #3a4a5a;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #1e3a5f;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .toc {
+            background: #f4f6f9;
+            padding: 20px 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .toc h2 {
+            margin-top: 0;
+            border: none;
+            padding-bottom: 0;
+        }
+        .toc ul {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">IQ</div>
+            <h1>CampusIQ</h1>
+            <p class="subtitle">Admin-Only College Operations Intelligence Platform</p>
+        </div>
+
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#target-users">2. Target Users</a></li>
+                <li><a href="#setup">3. Setup and Installation</a></li>
+                <li><a href="#structure">4. Project Structure</a></li>
+                <li><a href="#features">5. Key Features</a></li>
+                <li><a href="#firebase">6. Firebase Configuration</a></li>
+                <li><a href="#environment">7. Environment Variables</a></li>
+                <li><a href="#customization">8. Customization Guide</a></li>
+                <li><a href="#security">9. Security</a></li>
+                <li><a href="#troubleshooting">10. Troubleshooting</a></li>
+                <li><a href="#support">11. Support</a></li>
+            </ul>
+        </div>
+
+        <h2 id="introduction">1. Introduction</h2>
+        <p>CampusIQ is an enterprise-grade mobile application designed exclusively for college and university administrators. Built with React Native, it provides a unified platform for managing institutional operations, tracking compliance, and making data-driven decisions.</p>
+        <p><strong>Key Differentiators:</strong></p>
+        <ul>
+            <li>Admin-only platform - no student-facing features</li>
+            <li>AI-powered task analysis using Gemini</li>
+            <li>Real-time synchronization with Firebase</li>
+            <li>Offline-first architecture</li>
+            <li>Executive dashboard with performance metrics</li>
+        </ul>
+
+        <h2 id="target-users">2. Target Users</h2>
+        <p>CampusIQ is designed for authorized institutional personnel only:</p>
+        <table>
+            <tr>
+                <th>Role</th>
+                <th>Access Level</th>
+            </tr>
+            <tr>
+                <td>Principal / President</td>
+                <td>Full executive access</td>
+            </tr>
+            <tr>
+                <td>Dean</td>
+                <td>Department-level operations</td>
+            </tr>
+            <tr>
+                <td>Registrar</td>
+                <td>Academic records & compliance</td>
+            </tr>
+            <tr>
+                <td>Director</td>
+                <td>Functional area management</td>
+            </tr>
+            <tr>
+                <td>Management Committee</td>
+                <td>Strategic oversight</td>
+            </tr>
+        </table>
+
+        <h2 id="setup">3. Setup and Installation</h2>
+        <h3>Prerequisites</h3>
+        <ul>
+            <li>Node.js 18+ (recommended: 20.x)</li>
+            <li>React Native CLI</li>
+            <li>Android Studio (for Android development)</li>
+            <li>Xcode (for iOS development)</li>
+        </ul>
+        <h3>Installation Steps</h3>
+        <pre>
+# Navigate to project directory
+cd crm-lead-management-app-react-native
+
+# Install dependencies
+npm install
+
+# Start Metro bundler
+npm start
+
+# Run on Android
+npm run android
+
+# Run on iOS (macOS only)
+npm run ios</pre>
+
+        <h2 id="structure">4. Project Structure</h2>
+        <pre>
+src/
+├── components/           # Reusable UI components
+│   ├── IssueCard.tsx    # Task card component
+│   ├── ReportForm.tsx   # Task creation form
+│   └── StatusBadge.tsx  # Status/priority badges
+├── navigation/           # Navigation configuration
+│   └── RootNavigator.tsx
+├── redux/                # State management
+│   ├── authSlice.ts     # Authentication state
+│   ├── issueSlice.ts    # Operations/tasks state
+│   └── store.ts         # Redux store
+├── screens/
+│   ├── Admin/           # Executive dashboard
+│   ├── Auth/            # Login & registration
+│   └── User/            # Operations screens
+├── services/             # External integrations
+│   ├── firebase.ts      # Firebase config
+│   ├── gemini.service.ts
+│   ├── maps.service.ts
+│   └── notification.service.ts
+└── App.tsx               # Entry point</pre>
+
+        <h2 id="features">5. Key Features</h2>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><span class="badge">Dashboard</span></td>
+                <td>Executive overview with metrics and task management</td>
+            </tr>
+            <tr>
+                <td><span class="badge">AI Analysis</span></td>
+                <td>Gemini-powered task categorization and prioritization</td>
+            </tr>
+            <tr>
+                <td><span class="badge">Campus Map</span></td>
+                <td>Geographic visualization of operations</td>
+            </tr>
+            <tr>
+                <td><span class="badge">Notifications</span></td>
+                <td>Push alerts for high-priority items</td>
+            </tr>
+            <tr>
+                <td><span class="badge">Offline Mode</span></td>
+                <td>Work without connectivity, auto-sync when online</td>
+            </tr>
+        </table>
+
+        <h2 id="firebase">6. Firebase Configuration</h2>
+        <ol>
+            <li>Create a Firebase project at <a href="https://console.firebase.google.com">console.firebase.google.com</a></li>
+            <li>Enable Authentication (Email/Password)</li>
+            <li>Enable Firestore Database</li>
+            <li>Enable Cloud Messaging</li>
+            <li>Download and add configuration files:
+                <ul>
+                    <li><code>google-services.json</code> → <code>/android/app/</code></li>
+                    <li><code>GoogleService-Info.plist</code> → <code>/ios/CRM/</code></li>
+                </ul>
+            </li>
+        </ol>
+
+        <h2 id="environment">7. Environment Variables</h2>
+        <p>Create a <code>.env</code> file in the project root:</p>
+        <pre>
+GEMINI_API_KEY=your_gemini_api_key
+FCM_SERVER_KEY=your_fcm_server_key</pre>
+
+        <h2 id="customization">8. Customization Guide</h2>
+        <h3>Branding Colors</h3>
+        <p>The primary color scheme uses a professional navy palette:</p>
+        <pre>
+Primary:    #1e3a5f (Navy)
+Accent:     #64b5f6 (Light Blue)
+Background: #f4f6f9 (Light Gray)
+Text:       #0c1222 (Dark)</pre>
+        
+        <h3>Fonts</h3>
+        <p>CampusIQ uses the following fonts:</p>
+        <ul>
+            <li>Poppins (Regular, Medium, Bold)</li>
+            <li>DM Sans (Medium)</li>
+        </ul>
+
+        <h2 id="security">9. Security</h2>
+        <ul>
+            <li><strong>Authentication:</strong> Firebase Auth with institutional email</li>
+            <li><strong>Authorization:</strong> Role-based access (ADMIN only)</li>
+            <li><strong>Data Privacy:</strong> Firestore security rules</li>
+            <li><strong>Transport:</strong> HTTPS/TLS encryption</li>
+        </ul>
+
+        <h2 id="troubleshooting">10. Troubleshooting</h2>
+        <h3>Build Issues</h3>
+        <pre>
+# Clear cache and reinstall
+rm -rf node_modules
+npm install
+npm start --reset-cache</pre>
+        
+        <h3>Android Issues</h3>
+        <pre>
+cd android
+./gradlew clean
+cd ..
+npm run android</pre>
+
+        <h2 id="support">11. Support</h2>
+        <p>CampusIQ is designed for institutional deployment. For implementation support or customization inquiries, contact your system administrator.</p>
+        
+        <hr style="margin-top: 40px; border: none; border-top: 2px solid #e4e8ec;">
+        <p style="text-align: center; color: #7a8a9a; font-size: 14px;">
+            <strong>CampusIQ</strong> — Intelligent Operations for Academic Excellence
+        </p>
+    </div>
+</body>
+
+</html>
