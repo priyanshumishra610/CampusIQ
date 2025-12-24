@@ -26,26 +26,26 @@ CampusIQ implements a **zero-trust security model** where the frontend is consid
                      │ HTTPS Calls
                      ▼
 ┌─────────────────────────────────────────────────────────┐
-│           Firebase Cloud Functions (Security Layer)      │
-│  • Role-based authorization                              │
+│           Firebase Cloud Functions (Security Layer)     │
+│  • Role-based authorization                             │
 │  • Rate limiting & abuse detection                      │
-│  • Input validation & sanitization                       │
+│  • Input validation & sanitization                      │
 │  • Immutable audit logging                              │
-│  • Security event logging                                │
+│  • Security event logging                               │
 └────────────────────┬────────────────────────────────────┘
                      │ Validated Writes
                      ▼
 ┌─────────────────────────────────────────────────────────┐
-│              Firestore Security Rules                    │
-│  • Defense-in-depth validation                           │
-│  • Prevent client-side role escalation                   │
+│              Firestore Security Rules                   │
+│  • Defense-in-depth validation                          │
+│  • Prevent client-side role escalation                  │
 │  • Immutable audit logs                                 │
 │  • Backend-only security events                         │
 └────────────────────┬────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    Firestore Database                    │
+│                    Firestore Database                   │
 │  • users, issues, auditLogs, securityEvents             │
 └─────────────────────────────────────────────────────────┘
 ```
