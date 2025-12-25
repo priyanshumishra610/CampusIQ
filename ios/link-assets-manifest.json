@@ -1,0 +1,33 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/DMSans-Medium.ttf",
+      "sha1": "afe77e497ca69c2e83ade71a6acb5036393db1f1"
+    },
+    {
+      "path": "assets/fonts/Poppins-Bold.ttf",
+      "sha1": "b9b65c039a1f10a5cb5e0726c6e7e18e98a8e517"
+    },
+    {
+      "path": "assets/fonts/Poppins-BoldItalic.ttf",
+      "sha1": "5b2f8f7c4bbd52b6a1948c9781b45b17d31430ea"
+    },
+    {
+      "path": "assets/fonts/Poppins-Italic.ttf",
+      "sha1": "597eeb5ac2ce09c6f57ee14457a91be9e4a826cd"
+    },
+    {
+      "path": "assets/fonts/Poppins-Medium.ttf",
+      "sha1": "283f21b44efbdbf276ba802be2d949a36bbc4233"
+    },
+    {
+      "path": "assets/fonts/Poppins-MediumItalic.ttf",
+      "sha1": "5633a4f50fb7cf79131b957beff9114b0997bdac"
+    },
+    {
+      "path": "assets/fonts/Poppins-Regular.ttf",
+      "sha1": "01d319c533f62ea29f03b5df8adfd4d93d2d2a38"
+    }
+  ]
+}
