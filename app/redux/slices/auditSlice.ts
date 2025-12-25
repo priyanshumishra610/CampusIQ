@@ -1,6 +1,6 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import firestore from '@react-native-firebase/firestore';
-import {AdminRole} from '../config/permissions';
+import {AdminRole} from '../../config/permissions';
 
 export type AuditAction =
   | 'task:created'

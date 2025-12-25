@@ -2,23 +2,23 @@ import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import {AppDispatch, RootState} from './store';
+import {AppDispatch, RootState} from '../store';
 import {
   analyzeTaskWithGemini,
   GeminiTaskInsights,
-} from '../services/gemini.service';
+} from '../../services/gemini.service';
 import {
   notifyAdminsHighPriority,
   notifyUserStatusChange,
-} from '../services/notification.service';
+} from '../../services/notification.service';
 import {UserProfile} from './authSlice';
 import {createAuditLog} from './auditSlice';
-import {AdminRole} from '../config/permissions';
+import {AdminRole} from '../../config/permissions';
 import {
   secureCreateTask,
   secureUpdateTaskStatus,
   secureAddTaskComment,
-} from '../services/security.service';
+} from '../../services/security.service';
 
 export type TaskStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'ESCALATED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';

@@ -1,8 +1,8 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import {registerDeviceToken} from '../services/notification.service';
-import {AdminRole} from '../config/permissions';
+import {registerDeviceToken} from '../../services/notification.service';
+import {AdminRole} from '../../config/permissions';
 
 export type Role = 'USER' | 'ADMIN';
 

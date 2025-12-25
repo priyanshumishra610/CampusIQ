@@ -2,9 +2,9 @@ import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import {AppDispatch, RootState} from './store';
+import {AppDispatch, RootState} from '../store';
 import {UserProfile} from './authSlice';
-import {AdminRole} from '../config/permissions';
+import {AdminRole} from '../../config/permissions';
 import {
   secureCreateExam,
   secureUpdateExam,
@@ -12,7 +12,7 @@ import {
   securePublishExamResults,
   detectExamConflicts,
   ExamConflict,
-} from '../services/exam.service';
+} from '../../services/exam.service';
 
 export type ExamStatus = 'DRAFT' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 export type ExamType = 'MIDTERM' | 'FINAL' | 'QUIZ' | 'ASSIGNMENT' | 'PROJECT';

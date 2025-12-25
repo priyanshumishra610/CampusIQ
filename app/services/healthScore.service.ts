@@ -1,4 +1,4 @@
-import {Task, TaskStatus, TaskPriority} from '../redux/taskSlice';
+import {Task, TaskStatus, TaskPriority} from '../redux/slices/taskSlice';
 
 export type HealthScoreBreakdown = {
   score: number;
