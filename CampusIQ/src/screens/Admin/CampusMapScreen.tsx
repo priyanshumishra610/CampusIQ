@@ -5,15 +5,18 @@ import {useSelector} from 'react-redux';
 import {RootState} from '../../redux/store';
 import {TaskPriority} from '../../redux/taskSlice';
 import EmptyState from '../../components/EmptyState';
+import {colors} from '../../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../../theme/spacing';
+import {shadows} from '../../theme/shadows';
 
 const priorityColor = (priority: TaskPriority) => {
   switch (priority) {
     case 'HIGH':
-      return '#c0392b';
+      return colors.priority.high;
     case 'MEDIUM':
-      return '#e67e22';
+      return colors.priority.medium;
     default:
-      return '#27ae60';
+      return colors.priority.low;
   }
 };
 
@@ -91,21 +94,27 @@ const CampusMapScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f6f9',
+    backgroundColor: colors.background,
   },
   header: {
-    padding: 16,
-    paddingBottom: 8,
+    padding: spacing.lg,
+    paddingBottom: spacing.md,
+    backgroundColor: colors.backgroundSecondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0c1222',
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#5a6a7a',
-    marginTop: 2,
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.normal,
+    lineHeight: fontSize.sm * 1.5,
   },
   emptyContainer: {
     flex: 1,
@@ -113,24 +122,27 @@ const styles = StyleSheet.create({
   },
   legend: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 16,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing.sm,
   },
   legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: borderRadius.full,
   },
   legendText: {
-    fontSize: 12,
-    color: '#5a6a7a',
-    fontWeight: '500',
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.medium,
   },
   map: {
     width: Dimensions.get('window').width,

@@ -5,6 +5,8 @@ import ReportForm from '../../components/ReportForm';
 import {createTask} from '../../redux/taskSlice';
 import {RootState} from '../../redux/store';
 import NetInfo from '@react-native-community/netinfo';
+import {colors} from '../../theme/colors';
+import {spacing, fontSize, fontWeight} from '../../theme/spacing';
 
 const CreateTaskScreen = ({navigation}: any) => {
   const dispatch = useDispatch();
@@ -57,20 +59,22 @@ const CreateTaskScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f4f6f9',
+    padding: spacing.lg,
+    backgroundColor: colors.background,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0c1222',
-    marginBottom: 4,
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#5a6a7a',
-    marginBottom: 20,
-    lineHeight: 18,
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+    lineHeight: fontSize.sm * 1.5,
+    fontWeight: fontWeight.normal,
   },
 });
 

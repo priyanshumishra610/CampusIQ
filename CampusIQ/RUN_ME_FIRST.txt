@@ -1,0 +1,38 @@
+========================================
+QUICK START - Android Development Setup
+========================================
+
+TERMINAL COMMANDS ARE TIMING OUT - PLEASE RUN MANUALLY
+
+STEP 1: Open PowerShell as Administrator
+   Right-click PowerShell → Run as Administrator
+
+STEP 2: Navigate to project
+   cd "D:\tech sprint\CampusIQ"
+
+STEP 3: Remove lock files (copy-paste these commands)
+   Remove-Item "C:\ProgramData\chocolatey\lib\5df8b409508262b287880fbc43446e7383fee172" -Force -Recurse -ErrorAction SilentlyContinue
+   Remove-Item "C:\ProgramData\chocolatey\lib\b2c1dfac4e6762d2822ffe4f9ceb2639f5b0d65e" -Force -Recurse -ErrorAction SilentlyContinue
+
+STEP 4: Install JDK 21
+   choco install temurin21 -y
+
+STEP 5: Install Android Studio
+   choco install androidstudio -y
+
+STEP 6: Configure environment
+   .\configure-env.ps1
+
+STEP 7: Close and reopen PowerShell, then verify
+   java -version
+   adb version
+   npx react-native doctor
+
+========================================
+ALTERNATIVE: Use the batch file
+========================================
+
+Right-click "install-all.bat" → Run as Administrator
+
+This will do steps 3-5 automatically.
+

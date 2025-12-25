@@ -3,10 +3,14 @@ import {View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
 import {useDispatch, useSelector} from 'react-redux';
 import AuditTrail from '../../components/AuditTrail';
 import PermissionGate, {usePermission} from '../../components/PermissionGate';
+import Button from '../../components/Button';
 import {Exam, ExamType, ExamStatus, updateExam, deleteExam} from '../../redux/examSlice';
 import {RootState} from '../../redux/store';
 import {getRoleDisplayName} from '../../config/permissions';
 import EmptyState from '../../components/EmptyState';
+import {colors} from '../../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../../theme/spacing';
+import {shadows} from '../../theme/shadows';
 
 type Props = {
   route: {params: {exam: Exam}};
@@ -177,31 +181,29 @@ const ExamDetailScreen = ({route, navigation}: Props) => {
 
       {canEdit && exam.status === 'DRAFT' && (
         <View style={styles.actionsSection}>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionSchedule]}
+          <Button
+            title="Mark as Scheduled"
             onPress={() => handleStatusChange('SCHEDULED')}
-            disabled={updating}>
-            {updating ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.actionBtnText}>Mark as Scheduled</Text>
-            )}
-          </TouchableOpacity>
+            variant="primary"
+            size="md"
+            disabled={updating}
+            loading={updating}
+            style={styles.actionButton}
+          />
         </View>
       )}
 
       {canDelete && exam.status === 'DRAFT' && (
         <View style={styles.actionsSection}>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionDelete]}
+          <Button
+            title="Delete Exam"
             onPress={handleDelete}
-            disabled={deleting}>
-            {deleting ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.actionBtnText}>Delete Exam</Text>
-            )}
-          </TouchableOpacity>
+            variant="destructive"
+            size="md"
+            disabled={deleting}
+            loading={deleting}
+            style={styles.actionButton}
+          />
         </View>
       )}
 
@@ -224,173 +226,171 @@ const ExamDetailScreen = ({route, navigation}: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f4f6f9',
+    padding: spacing.lg,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: spacing.lg,
+    padding: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
   },
   titleSection: {
     flex: 1,
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0c1222',
-    marginBottom: 4,
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.3,
   },
   courseCode: {
-    fontSize: 14,
-    color: '#1e3a5f',
-    fontWeight: '700',
+    fontSize: fontSize.base,
+    color: colors.primary,
+    fontWeight: fontWeight.semibold,
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
   },
   statusText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    color: colors.textInverse,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
   },
   section: {
-    marginBottom: 24,
-    padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    marginBottom: spacing.lg,
+    padding: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#e4e8ec',
+    borderColor: colors.border,
+    ...shadows.sm,
   },
   conflictSection: {
-    marginBottom: 24,
-    padding: 16,
-    backgroundColor: '#fff3cd',
-    borderRadius: 12,
+    marginBottom: spacing.lg,
+    padding: spacing.lg,
+    backgroundColor: colors.warning + '15',
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#ffc107',
+    borderColor: colors.warning + '40',
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0c1222',
-    marginBottom: 12,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#e4e8ec',
-    paddingBottom: 8,
+    borderBottomColor: colors.border,
   },
   label: {
-    fontSize: 12,
-    color: '#7a8a9a',
-    marginTop: 10,
-    marginBottom: 4,
-    fontWeight: '600',
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+    fontWeight: fontWeight.medium,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   value: {
-    fontSize: 15,
-    color: '#2a3a4a',
-    lineHeight: 22,
+    fontSize: fontSize.base,
+    color: colors.textPrimary,
+    lineHeight: fontSize.base * 1.5,
+    fontWeight: fontWeight.normal,
   },
   meta: {
-    fontSize: 13,
-    color: '#7a8a9a',
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.normal,
   },
   typeBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginTop: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.sm,
   },
   typeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
+    color: colors.textInverse,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
   },
   scheduleRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
+    gap: spacing.md,
+    marginTop: spacing.sm,
   },
   scheduleItem: {
     flex: 1,
   },
   conflictItem: {
-    marginTop: 12,
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: '#ffc107',
+    borderColor: colors.warning + '40',
   },
   conflictType: {
-    fontSize: 11,
-    color: '#856404',
-    fontWeight: '700',
+    fontSize: fontSize.xs,
+    color: colors.warning,
+    fontWeight: fontWeight.semibold,
     textTransform: 'uppercase',
   },
   conflictMessage: {
-    fontSize: 13,
-    color: '#856404',
-    marginTop: 4,
+    fontSize: fontSize.sm,
+    color: colors.warning,
+    marginTop: spacing.xs,
+    fontWeight: fontWeight.normal,
   },
   conflictExam: {
-    fontSize: 12,
-    color: '#856404',
-    marginTop: 4,
+    fontSize: fontSize.xs,
+    color: colors.warning,
+    marginTop: spacing.xs,
     fontStyle: 'italic',
+    fontWeight: fontWeight.normal,
   },
   aiCard: {
-    marginTop: 8,
-    padding: 12,
-    backgroundColor: '#f0f4f8',
-    borderRadius: 8,
+    marginTop: spacing.sm,
+    padding: spacing.md,
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: '#d0e0f0',
+    borderColor: colors.border,
   },
   aiText: {
-    fontSize: 14,
-    color: '#2a3a4a',
-    lineHeight: 20,
+    fontSize: fontSize.base,
+    color: colors.textPrimary,
+    lineHeight: fontSize.base * 1.5,
+    fontWeight: fontWeight.normal,
   },
   aiTag: {
-    marginTop: 8,
-    fontSize: 11,
-    color: '#1e3a5f',
-    fontWeight: '600',
+    marginTop: spacing.sm,
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
+    fontWeight: fontWeight.normal,
   },
   actionsSection: {
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
-  actionBtn: {
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  actionSchedule: {
-    backgroundColor: '#3498db',
-  },
-  actionDelete: {
-    backgroundColor: '#e74c3c',
-  },
-  actionBtnText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
+  actionButton: {
+    width: '100%',
   },
   metaSection: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: spacing.lg,
+    paddingTop: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: '#e4e8ec',
+    borderTopColor: colors.border,
   },
 });
 

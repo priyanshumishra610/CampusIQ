@@ -1,4 +1,5 @@
 @echo off
+<<<<<<< HEAD
 REM Build script for CampusIQ Android app
 REM Can be run from any directory
 
@@ -22,4 +23,10 @@ if %ERRORLEVEL% NEQ 0 (
     echo Build failed! Check the errors above.
     pause
 )
+=======
+REM Quick build script - runs from project root
+cd /d "D:\tech sprint\CampusIQ"
+call npm run android
+pause
+>>>>>>> 671b43a (Initial commit on Shinigami branch)
 

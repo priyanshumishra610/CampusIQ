@@ -7,6 +7,9 @@ import {initAuthListener} from './redux/authSlice';
 import {registerDeviceToken} from './services/notification.service';
 import {seedDemoData} from './services/demoSeed.service';
 import firebase from './services/firebase';
+import {colors} from './theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from './theme/spacing';
+import {shadows} from './theme/shadows';
 
 type BootState = 'booting' | 'ready' | 'error';
 
@@ -14,57 +17,70 @@ const Splash = ({message, onRetry}: {message?: string; onRetry: () => void}) => 
   <SafeAreaView
     style={{
       flex: 1,
-      backgroundColor: '#0c1222',
+      backgroundColor: colors.primaryDark,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: 24,
+      paddingHorizontal: spacing['2xl'],
     }}>
-    <StatusBar barStyle="light-content" backgroundColor="#0c1222" />
+    <StatusBar barStyle="light-content" backgroundColor={colors.primaryDark} />
     <View
       style={{
-        width: 88,
-        height: 88,
-        borderRadius: 20,
-        backgroundColor: '#1e3a5f',
+        width: 96,
+        height: 96,
+        borderRadius: borderRadius.xl,
+        backgroundColor: colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 20,
-        borderWidth: 2,
-        borderColor: '#2d5a87',
+        marginBottom: spacing.xl,
+        ...shadows.xl,
       }}>
-      <Text style={{fontSize: 32, fontWeight: '900', color: '#64b5f6'}}>IQ</Text>
+      <Text style={{fontSize: fontSize['4xl'], fontWeight: fontWeight.extrabold, color: colors.textInverse, letterSpacing: 2}}>IQ</Text>
     </View>
-    <Text style={{color: '#e8eef4', fontSize: 26, fontWeight: '800', letterSpacing: 1}}>
+    <Text style={{color: colors.textInverse, fontSize: fontSize['3xl'], fontWeight: fontWeight.extrabold, letterSpacing: 1.5, marginBottom: spacing.xs}}>
       CampusIQ
     </Text>
-    <Text style={{color: '#8ba4bc', fontSize: 13, marginTop: 6, textAlign: 'center'}}>
+    <Text style={{color: colors.textInverse + 'CC', fontSize: fontSize.base, marginTop: spacing.xs, textAlign: 'center', fontWeight: fontWeight.medium}}>
       College Operations Intelligence
     </Text>
     {message ? (
-      <Text
-        style={{
-          color: '#c9d6e3',
-          marginTop: 16,
-          textAlign: 'center',
-          lineHeight: 20,
-          fontSize: 14,
-        }}>
-        {message}
-      </Text>
-    ) : null}
-    <TouchableOpacity
-      onPress={onRetry}
-      style={{
-        marginTop: 20,
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 10,
-        backgroundColor: '#1e3a5f',
+      <View style={{
+        marginTop: spacing.xl,
+        padding: spacing.md,
+        backgroundColor: colors.error + '20',
+        borderRadius: borderRadius.md,
         borderWidth: 1,
-        borderColor: '#2d5a87',
+        borderColor: colors.error + '40',
+        maxWidth: 320,
       }}>
-      <Text style={{color: '#64b5f6', fontWeight: '700'}}>Retry</Text>
-    </TouchableOpacity>
+        <Text
+          style={{
+            color: colors.textInverse + 'E6',
+            textAlign: 'center',
+            lineHeight: fontSize.base * 1.5,
+            fontSize: fontSize.sm,
+            fontWeight: fontWeight.medium,
+          }}>
+          {message}
+        </Text>
+      </View>
+    ) : null}
+    {message && (
+      <TouchableOpacity
+        onPress={onRetry}
+        activeOpacity={0.8}
+        style={{
+          marginTop: spacing.xl,
+          paddingHorizontal: spacing['2xl'],
+          paddingVertical: spacing.md,
+          borderRadius: borderRadius.md,
+          backgroundColor: colors.primary,
+          borderWidth: 1,
+          borderColor: colors.primaryLight,
+          ...shadows.md,
+        }}>
+        <Text style={{color: colors.textInverse, fontWeight: fontWeight.bold, fontSize: fontSize.base, letterSpacing: 0.3}}>Retry</Text>
+      </TouchableOpacity>
+    )}
   </SafeAreaView>
 );
 
@@ -102,8 +118,8 @@ const Bootstrapper = ({onError}: {onError: (message: string) => void}) => {
   }, [dispatch, onError]);
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: '#f4f6f9'}}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f4f6f9" />
+    <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <RootNavigator />
     </SafeAreaView>
   );
@@ -171,23 +187,6 @@ const App = (): React.JSX.Element => {
   return (
     <AppBoundary onReset={handleReset}>
       <Bootstrapper onError={handleError} />
-      {/* Temporary Firebase verification - Remove after verification */}
-      {bootState === 'ready' && (
-        <Text
-          style={{
-            position: 'absolute',
-            top: 50,
-            left: 20,
-            color: 'green',
-            fontSize: 12,
-            fontWeight: 'bold',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            padding: 4,
-            borderRadius: 4,
-          }}>
-          Firebase Configured!
-        </Text>
-      )}
     </AppBoundary>
   );
 };

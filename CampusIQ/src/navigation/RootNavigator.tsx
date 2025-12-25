@@ -14,11 +14,14 @@ import ExamDashboard from '../screens/Admin/ExamDashboard';
 import ExamCalendarScreen from '../screens/Admin/ExamCalendarScreen';
 import ExamDetailScreen from '../screens/Admin/ExamDetailScreen';
 import CreateExamScreen from '../screens/Admin/CreateExamScreen';
+import EmployeeManagementScreen from '../screens/Employee/EmployeeManagementScreen';
 import {RootState} from '../redux/store';
 import {startTasksForRole, stopTaskListener} from '../redux/taskSlice';
 import {startExamsForRole, stopExamListener} from '../redux/examSlice';
 import {signOut} from '../redux/authSlice';
 import {hasPermission, getRoleDisplayName} from '../config/permissions';
+import {colors} from '../theme/colors';
+import {spacing, fontSize, fontWeight} from '../theme/spacing';
 
 const AuthStack = createNativeStackNavigator();
 const AdminStack = createNativeStackNavigator();
@@ -26,29 +29,64 @@ const AdminTabs = createBottomTabNavigator();
 
 const screenOptions = {
   headerStyle: {
-    backgroundColor: '#1e3a5f',
+    backgroundColor: colors.backgroundSecondary,
+    elevation: 0,
+    shadowOpacity: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  headerTintColor: '#fff',
+  headerTintColor: colors.textPrimary,
   headerTitleStyle: {
-    fontWeight: '700' as const,
+    fontWeight: fontWeight.semibold,
+    fontSize: fontSize.md,
+    color: colors.textPrimary,
   },
   headerBackTitleVisible: false,
+  headerShadowVisible: false,
 };
 
-const tabBarOptions = {
-  tabBarStyle: {
-    backgroundColor: '#fff',
-    borderTopColor: '#e4e8ec',
-    paddingBottom: 4,
-    height: 56,
-  },
-  tabBarActiveTintColor: '#1e3a5f',
-  tabBarInactiveTintColor: '#7a8a9a',
-  tabBarLabelStyle: {
-    fontSize: 11,
-    fontWeight: '600' as const,
-  },
+// Simple icon component for tabs
+const TabIcon = ({name, focused}: {name: string; focused: boolean}) => {
+  const icons: Record<string, string> = {
+    Dashboard: '📊',
+    Exams: '📝',
+    Map: '🗺️',
+    CrowdHeatmap: '🔥',
+    CreateTask: '➕',
+    EmployeeManagement: '👥',
+  };
+  
+  return (
+    <Text style={{fontSize: 20, opacity: focused ? 1 : 0.6}}>
+      {icons[name] || '○'}
+    </Text>
+  );
 };
+
+const tabBarOptions = ({route}: any) => ({
+  tabBarIcon: ({focused}: {focused: boolean}) => (
+    <TabIcon name={route.name} focused={focused} />
+  ),
+  tabBarStyle: {
+    backgroundColor: colors.backgroundSecondary,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingBottom: spacing.sm,
+    paddingTop: spacing.sm,
+    height: 60,
+    elevation: 0,
+  },
+  tabBarActiveTintColor: colors.primary,
+  tabBarInactiveTintColor: colors.textTertiary,
+  tabBarLabelStyle: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+    marginTop: -spacing.xs,
+  },
+  tabBarIconStyle: {
+    marginTop: spacing.xs,
+  },
+});
 
 const AdminNavigator = () => {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -80,7 +118,7 @@ const AdminNavigator = () => {
         name="Map"
         component={CampusMapScreen}
         options={{
-          title: 'Campus Map',
+          title: 'Map',
           headerShown: false,
         }}
       />
@@ -104,6 +142,14 @@ const AdminNavigator = () => {
           }}
         />
       )}
+      <AdminTabs.Screen
+        name="EmployeeManagement"
+        component={EmployeeManagementScreen}
+        options={{
+          title: 'Employees',
+          headerShown: false,
+        }}
+      />
     </AdminTabs.Navigator>
   );
 };
@@ -124,19 +170,19 @@ const AdminStackNavigator = () => {
         options={{
           headerTitle: () => (
             <View>
-              <Text style={{color: '#fff', fontWeight: '700', fontSize: 17}}>
+              <Text style={{color: colors.textPrimary, fontWeight: fontWeight.semibold, fontSize: fontSize.md}}>
                 CampusIQ
               </Text>
               {user?.adminRole && (
-                <Text style={{color: '#a8c4e0', fontSize: 11}}>
+                <Text style={{color: colors.textSecondary, fontSize: fontSize.xs, fontWeight: fontWeight.normal, marginTop: 2}}>
                   {getRoleDisplayName(user.adminRole)}
                 </Text>
               )}
             </View>
           ),
           headerRight: () => (
-            <TouchableOpacity onPress={handleSignOut} style={{marginRight: 8}}>
-              <Text style={{color: '#a8c4e0', fontSize: 13, fontWeight: '600'}}>
+            <TouchableOpacity onPress={handleSignOut} style={{marginRight: spacing.md, paddingVertical: spacing.xs, paddingHorizontal: spacing.sm}} activeOpacity={0.7}>
+              <Text style={{color: colors.textSecondary, fontSize: fontSize.sm, fontWeight: fontWeight.medium}}>
                 Sign Out
               </Text>
             </TouchableOpacity>
@@ -186,9 +232,9 @@ const RootNavigator = () => {
 
   if (initializing) {
     return (
-      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f4f6f9'}}>
-        <ActivityIndicator size="large" color="#1e3a5f" />
-        <Text style={{marginTop: 12, color: '#5a6a7a', fontSize: 13}}>
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background}}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{marginTop: spacing.md, color: colors.textSecondary, fontSize: fontSize.base, fontWeight: fontWeight.medium}}>
           Loading CampusIQ...
         </Text>
       </View>
