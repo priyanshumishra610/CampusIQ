@@ -80,8 +80,7 @@ Traditional systems fail because they are:
 
 ---
 
-## 🏢 HR Portal (Keka-Class & Beyond)
-
+## 🏢 HR Portal 
 CampusIQ HR is a **full HRMS suite equivalent to Keka**, including:
 
 ### 👥 Employee Management
