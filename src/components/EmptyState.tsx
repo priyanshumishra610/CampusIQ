@@ -1,5 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
+import {colors} from '../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../theme/spacing';
 
 type EmptyStateVariant =
   | 'no-tasks'
@@ -88,37 +90,38 @@ const EmptyState = ({variant, customTitle, customMessage}: Props) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 24,
+    paddingVertical: spacing['3xl'],
+    paddingHorizontal: spacing.lg,
   },
   iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#f0f4f8',
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.backgroundTertiary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#e4e8ec',
+    borderColor: colors.border,
   },
   icon: {
-    fontSize: 24,
-    color: '#7a8a9a',
+    fontSize: fontSize.xl,
+    color: colors.textTertiary,
   },
   title: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#2a3a4a',
-    marginBottom: 6,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
     textAlign: 'center',
   },
   message: {
-    fontSize: 14,
-    color: '#7a8a9a',
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: fontSize.sm * 1.5,
     maxWidth: 280,
+    fontWeight: fontWeight.normal,
   },
 });
 

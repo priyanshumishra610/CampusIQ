@@ -5,6 +5,9 @@ import {RootState} from '../redux/store';
 import {fetchAuditLogs, getActionDisplayName, AuditLogEntry} from '../redux/auditSlice';
 import {getRoleDisplayName} from '../config/permissions';
 import EmptyState from './EmptyState';
+import {colors} from '../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../theme/spacing';
+import {shadows} from '../theme/shadows';
 
 type Props = {
   entityId: string;
@@ -101,32 +104,40 @@ const AuditTrail = ({entityId}: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 24,
+    marginTop: spacing.lg,
+    padding: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0c1222',
-    marginBottom: 16,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#e4e8ec',
-    paddingBottom: 8,
+    borderBottomColor: colors.border,
+    letterSpacing: -0.1,
   },
   loadingContainer: {
     alignItems: 'center',
-    paddingVertical: 32,
-    gap: 8,
+    paddingVertical: spacing['2xl'],
+    gap: spacing.sm,
   },
   loadingText: {
-    color: '#7a8a9a',
-    fontSize: 13,
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.normal,
   },
   timeline: {
     gap: 0,
   },
   logEntry: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
   },
   timelineIndicator: {
     alignItems: 'center',
@@ -135,60 +146,64 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: '#f0f4f8',
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.backgroundTertiary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#e4e8ec',
+    borderColor: colors.border,
   },
   icon: {
-    fontSize: 10,
-    color: '#5a6a7a',
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
   },
   timelineLine: {
-    width: 2,
+    width: 1,
     flex: 1,
-    backgroundColor: '#e4e8ec',
+    backgroundColor: colors.border,
     minHeight: 20,
   },
   logContent: {
     flex: 1,
-    paddingBottom: 16,
+    paddingBottom: spacing.md,
   },
   action: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2a3a4a',
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
   },
   change: {
-    fontSize: 13,
-    color: '#5a6a7a',
-    marginTop: 2,
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs / 2,
     fontStyle: 'italic',
+    fontWeight: fontWeight.normal,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+    flexWrap: 'wrap',
   },
   performer: {
-    fontSize: 12,
-    color: '#5a6a7a',
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.medium,
   },
   role: {
-    fontSize: 10,
-    color: '#1e3a5f',
-    backgroundColor: '#e8f0f8',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    fontWeight: '600',
+    fontSize: fontSize.xs,
+    color: colors.primary,
+    backgroundColor: colors.primaryLighter,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs / 2,
+    borderRadius: borderRadius.sm,
+    fontWeight: fontWeight.medium,
   },
   timestamp: {
-    fontSize: 11,
-    color: '#9aaaba',
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
+    fontWeight: fontWeight.normal,
   },
 });
 

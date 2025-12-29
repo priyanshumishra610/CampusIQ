@@ -3,6 +3,7 @@ import authReducer from './authSlice';
 import taskReducer from './taskSlice';
 import auditReducer from './auditSlice';
 import examReducer from './examSlice';
+import employeeReducer from './employeeSlice';
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     tasks: taskReducer,
     audit: auditReducer,
     exams: examReducer,
+    employee: employeeReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

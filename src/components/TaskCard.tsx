@@ -8,6 +8,9 @@ import {
 } from 'react-native';
 import StatusBadge from './StatusBadge';
 import {Task} from '../redux/taskSlice';
+import {colors} from '../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../theme/spacing';
+import {shadows} from '../theme/shadows';
 
 type Props = {
   task: Task;
@@ -16,36 +19,57 @@ type Props = {
 
 const TaskCard = ({task, onPress}: Props) => {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.card}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title} numberOfLines={2}>{task.title}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title} numberOfLines={2}>{task.title}</Text>
+        </View>
         <StatusBadge status={task.status} priority={task.priority} />
       </View>
-      <Text style={styles.meta}>
-        {task.category} • {task.priority} Priority
-      </Text>
+      
+      <View style={styles.metaContainer}>
+        <View style={styles.categoryBadge}>
+          <Text style={styles.categoryText}>{task.category}</Text>
+        </View>
+        <Text style={styles.metaSeparator}>•</Text>
+        <Text style={styles.metaText}>{task.priority} Priority</Text>
+      </View>
+      
       <Text style={styles.summary} numberOfLines={2}>
         {task.aiSummary || task.description}
       </Text>
+      
       {task.location && (
-        <Text style={styles.location}>
-          {task.location.lat.toFixed(4)}, {task.location.lng.toFixed(4)}
-        </Text>
+        <View style={styles.locationContainer}>
+          <Text style={styles.locationIcon}>📍</Text>
+          <Text style={styles.locationText}>
+            {task.location.lat.toFixed(4)}, {task.location.lng.toFixed(4)}
+          </Text>
+        </View>
       )}
+      
       {task.imageBase64 && (
         <Image
           source={{uri: `data:image/jpeg;base64,${task.imageBase64}`}}
           style={styles.image}
         />
       )}
+      
       <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          {task.createdByName || 'Administrator'}
-        </Text>
+        <View style={styles.footerLeft}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {(task.createdByName || 'A')[0].toUpperCase()}
+            </Text>
+          </View>
+          <Text style={styles.footerText}>
+            {task.createdByName || 'Administrator'}
+          </Text>
+        </View>
         <Text style={styles.footerDate}>
           {task.createdAt instanceof Date
-            ? task.createdAt.toDateString()
-            : new Date(task.createdAt?.toDate?.() ?? Date.now()).toDateString()}
+            ? task.createdAt.toLocaleDateString('en-US', {month: 'short', day: 'numeric'})
+            : new Date(task.createdAt?.toDate?.() ?? Date.now()).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
         </Text>
       </View>
     </TouchableOpacity>
@@ -54,71 +78,127 @@ const TaskCard = ({task, onPress}: Props) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 10,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#e4e8ec',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    shadowOffset: {width: 0, height: 2},
-    elevation: 2,
+    borderColor: colors.border,
+    ...shadows.sm,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    gap: 12,
+    gap: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  titleContainer: {
+    flex: 1,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
-    flex: 1,
-    color: '#0c1222',
-    lineHeight: 22,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    lineHeight: fontSize.md * 1.5,
+    letterSpacing: -0.1,
   },
-  meta: {
-    marginTop: 8,
-    color: '#5a6a7a',
-    fontSize: 12,
-    fontWeight: '500',
+  metaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+    flexWrap: 'wrap',
+  },
+  categoryBadge: {
+    backgroundColor: colors.primaryLighter,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+  },
+  categoryText: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+    color: colors.primary,
+  },
+  metaSeparator: {
+    color: colors.textTertiary,
+    fontSize: fontSize.sm,
+  },
+  metaText: {
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
   },
   summary: {
-    marginTop: 8,
-    color: '#2a3a4a',
-    fontSize: 14,
-    lineHeight: 20,
+    marginBottom: spacing.sm,
+    color: colors.textSecondary,
+    fontSize: fontSize.base,
+    lineHeight: fontSize.base * 1.5,
+    fontWeight: fontWeight.normal,
   },
-  location: {
-    marginTop: 8,
-    color: '#5a6a7a',
-    fontSize: 12,
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+    padding: spacing.sm,
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: borderRadius.md,
+  },
+  locationIcon: {
+    fontSize: fontSize.md,
+  },
+  locationText: {
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+    fontFamily: 'monospace',
   },
   image: {
     width: '100%',
-    height: 140,
-    marginTop: 12,
-    borderRadius: 8,
+    height: 180,
+    marginBottom: spacing.sm,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.backgroundTertiary,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   footer: {
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: '#f0f2f4',
+    borderTopColor: colors.border,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  footerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  avatar: {
+    width: 24,
+    height: 24,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    color: colors.textInverse,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.bold,
+  },
   footerText: {
-    color: '#7a8a9a',
-    fontSize: 12,
-    fontWeight: '500',
+    color: colors.textPrimary,
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
   },
   footerDate: {
-    color: '#9aaaba',
-    fontSize: 11,
+    color: colors.textTertiary,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
   },
 });
 

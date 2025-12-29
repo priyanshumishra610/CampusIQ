@@ -7,6 +7,9 @@ import PermissionGate, {usePermission} from '../../components/PermissionGate';
 import {Task, addTaskComment, updateTaskStatus} from '../../redux/taskSlice';
 import {RootState} from '../../redux/store';
 import {getRoleDisplayName} from '../../config/permissions';
+import {colors} from '../../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../../theme/spacing';
+import {shadows} from '../../theme/shadows';
 
 type Props = {
   route: {params: {task: Task}};
@@ -65,18 +68,28 @@ const TaskDetailScreen = ({route}: Props) => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 40}}>
-      <Text style={styles.title}>{task.title}</Text>
-      <StatusBadge status={task.status} priority={task.priority} />
-      <Text style={styles.meta}>
-        {task.category} • Priority: {task.priority}
-      </Text>
-      {createdAt && (
-        <Text style={styles.meta}>Created: {createdAt.toDateString()}</Text>
-      )}
-      {resolvedAt && (
-        <Text style={styles.metaResolved}>Completed: {resolvedAt.toDateString()}</Text>
-      )}
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <View style={styles.headerCard}>
+        <Text style={styles.title}>{task.title}</Text>
+        <View style={styles.badgeContainer}>
+          <StatusBadge status={task.status} priority={task.priority} />
+        </View>
+        <View style={styles.metaRow}>
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryText}>{task.category}</Text>
+          </View>
+          <Text style={styles.metaSeparator}>•</Text>
+          <Text style={styles.metaText}>Priority: {task.priority}</Text>
+        </View>
+        {createdAt && (
+          <Text style={styles.meta}>Created: {createdAt.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}</Text>
+        )}
+        {resolvedAt && (
+          <View style={styles.resolvedBadge}>
+            <Text style={styles.metaResolved}>✓ Completed: {resolvedAt.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}</Text>
+          </View>
+        )}
+      </View>
 
       <PermissionGate permissions={['task:close', 'task:escalate']}>
         <View style={styles.statusActions}>
@@ -84,7 +97,8 @@ const TaskDetailScreen = ({route}: Props) => {
             <TouchableOpacity
               style={[styles.statusBtn, styles.statusComplete]}
               onPress={() => handleStatusChange('RESOLVED')}
-              disabled={updating}>
+              disabled={updating}
+              activeOpacity={0.8}>
               <Text style={styles.statusBtnText}>Mark Complete</Text>
             </TouchableOpacity>
           )}
@@ -92,44 +106,60 @@ const TaskDetailScreen = ({route}: Props) => {
             <TouchableOpacity
               style={[styles.statusBtn, styles.statusProgress]}
               onPress={() => handleStatusChange('IN_PROGRESS')}
-              disabled={updating}>
+              disabled={updating}
+              activeOpacity={0.8}>
               <Text style={styles.statusBtnText}>Start Progress</Text>
             </TouchableOpacity>
           )}
         </View>
       </PermissionGate>
 
-      <Text style={styles.sectionTitle}>Details</Text>
-      <Text style={styles.body}>{task.description}</Text>
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Details</Text>
+        <Text style={styles.body}>{task.description}</Text>
+      </View>
 
-      <Text style={styles.sectionTitle}>AI Analysis</Text>
-      <View style={styles.card}>
-        <Text style={styles.label}>Summary</Text>
-        <Text style={styles.body}>{task.aiSummary || 'Analysis pending...'}</Text>
-        <Text style={styles.label}>Recommended Priority</Text>
-        <Text style={styles.body}>{task.priority}</Text>
-        <Text style={styles.label}>Category</Text>
-        <Text style={styles.body}>{task.category}</Text>
-        <Text style={styles.tag}>Powered by Gemini AI</Text>
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>AI Analysis</Text>
+        <View style={styles.aiCard}>
+          <View style={styles.aiItem}>
+            <Text style={styles.label}>Summary</Text>
+            <Text style={styles.body}>{task.aiSummary || 'Analysis pending...'}</Text>
+          </View>
+          <View style={styles.aiItem}>
+            <Text style={styles.label}>Recommended Priority</Text>
+            <Text style={styles.body}>{task.priority}</Text>
+          </View>
+          <View style={styles.aiItem}>
+            <Text style={styles.label}>Category</Text>
+            <Text style={styles.body}>{task.category}</Text>
+          </View>
+          <View style={styles.aiTag}>
+            <Text style={styles.tagText}>Powered by Gemini AI</Text>
+          </View>
+        </View>
       </View>
 
       {task.location && (
-        <>
-          <Text style={styles.sectionTitle}>Location Data</Text>
-          <Text style={styles.meta}>
-            Coordinates: {task.location.lat.toFixed(4)}, {task.location.lng.toFixed(4)}
-          </Text>
-        </>
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Location</Text>
+          <View style={styles.locationCard}>
+            <Text style={styles.locationIcon}>📍</Text>
+            <Text style={styles.locationText}>
+              {task.location.lat.toFixed(4)}, {task.location.lng.toFixed(4)}
+            </Text>
+          </View>
+        </View>
       )}
 
       {canComment && (
-        <>
+        <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Add Comment</Text>
-          <View style={styles.commentInput}>
+          <View style={styles.commentInputContainer}>
             <TextInput
               style={styles.input}
               placeholder="Add an administrative note..."
-              placeholderTextColor="#9aaaba"
+              placeholderTextColor={colors.textTertiary}
               value={comment}
               onChangeText={setComment}
               multiline
@@ -137,36 +167,48 @@ const TaskDetailScreen = ({route}: Props) => {
             <TouchableOpacity
               style={[styles.commentBtn, !comment.trim() && styles.commentBtnDisabled]}
               onPress={handleAddComment}
-              disabled={!comment.trim() || submittingComment}>
+              disabled={!comment.trim() || submittingComment}
+              activeOpacity={0.8}>
               {submittingComment ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.textInverse} />
               ) : (
                 <Text style={styles.commentBtnText}>Submit</Text>
               )}
             </TouchableOpacity>
           </View>
-        </>
+        </View>
       )}
 
       {task.comments && task.comments.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>Comments</Text>
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Comments ({task.comments.length})</Text>
           {task.comments.map(c => (
             <View key={c.id} style={styles.commentCard}>
               <View style={styles.commentHeader}>
-                <Text style={styles.commentAuthor}>{c.authorName}</Text>
-                <Text style={styles.commentRole}>{getRoleDisplayName(c.authorRole)}</Text>
+                <View style={styles.commentAuthorContainer}>
+                  <View style={styles.commentAvatar}>
+                    <Text style={styles.commentAvatarText}>{c.authorName[0].toUpperCase()}</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.commentAuthor}>{c.authorName}</Text>
+                    <Text style={styles.commentRole}>{getRoleDisplayName(c.authorRole)}</Text>
+                  </View>
+                </View>
+                <Text style={styles.commentTime}>
+                  {new Date(c.createdAt).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
+                </Text>
               </View>
               <Text style={styles.commentText}>{c.text}</Text>
-              <Text style={styles.commentTime}>
-                {new Date(c.createdAt).toLocaleDateString()}
-              </Text>
             </View>
           ))}
-        </>
+        </View>
       )}
 
-      {canViewAudit && <AuditTrail entityId={task.id} />}
+      {canViewAudit && (
+        <View style={styles.sectionCard}>
+          <AuditTrail entityId={task.id} />
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -174,151 +216,269 @@ const TaskDetailScreen = ({route}: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f4f6f9',
+    backgroundColor: colors.background,
+  },
+  contentContainer: {
+    paddingBottom: spacing['5xl'],
+  },
+  headerCard: {
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 0,
+    padding: spacing.lg,
+    paddingTop: spacing.xl,
+    marginBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0c1222',
-    marginBottom: 10,
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+    lineHeight: fontSize['2xl'] * 1.3,
+    letterSpacing: -0.3,
+  },
+  badgeContainer: {
+    marginBottom: spacing.lg,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    gap: spacing.md,
+    flexWrap: 'wrap',
+  },
+  categoryBadge: {
+    backgroundColor: colors.primaryLighter,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+  },
+  categoryText: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+    color: colors.primary,
+  },
+  metaSeparator: {
+    color: colors.textTertiary,
+    fontSize: fontSize.sm,
+  },
+  metaText: {
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.normal,
   },
   meta: {
-    color: '#5a6a7a',
-    marginTop: 6,
-    fontSize: 13,
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.normal,
+    marginTop: spacing.xs,
+  },
+  resolvedBadge: {
+    marginTop: spacing.md,
+    backgroundColor: colors.status.resolved + '15',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.status.resolved + '30',
   },
   metaResolved: {
-    color: '#27ae60',
-    marginTop: 6,
-    fontSize: 13,
-    fontWeight: '600',
+    color: colors.status.resolved,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
   },
   statusActions: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl,
+    marginBottom: spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
   },
   statusBtn: {
     flex: 1,
-    padding: 12,
-    borderRadius: 10,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
+    minHeight: 52,
+    justifyContent: 'center',
+    ...shadows.md,
   },
   statusComplete: {
-    backgroundColor: '#27ae60',
+    backgroundColor: colors.status.resolved,
   },
   statusProgress: {
-    backgroundColor: '#2980b9',
+    backgroundColor: colors.status.inProgress,
   },
   statusBtnText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
+    color: colors.textInverse,
+    fontWeight: fontWeight.medium,
+    fontSize: fontSize.sm,
+  },
+  sectionCard: {
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
   },
   sectionTitle: {
-    marginTop: 24,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0c1222',
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#e4e8ec',
-    paddingBottom: 8,
+    borderBottomColor: colors.border,
+    letterSpacing: -0.1,
   },
   body: {
-    marginTop: 8,
-    color: '#2a3a4a',
-    fontSize: 14,
-    lineHeight: 22,
+    color: colors.textSecondary,
+    fontSize: fontSize.base,
+    lineHeight: fontSize.base * 1.7,
+    fontWeight: fontWeight.normal,
   },
-  card: {
-    marginTop: 12,
-    padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e4e8ec',
+  aiCard: {
+    marginTop: spacing.md,
+  },
+  aiItem: {
+    marginBottom: spacing.lg,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
   },
   label: {
-    fontWeight: '700',
-    color: '#3a4a5a',
-    marginTop: 10,
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontWeight: fontWeight.medium,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+    fontSize: fontSize.xs,
   },
-  tag: {
-    marginTop: 16,
-    fontSize: 11,
-    color: '#1e3a5f',
-    fontWeight: '600',
+  aiTag: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
-  commentInput: {
-    marginTop: 12,
-    gap: 10,
+  tagText: {
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
+    fontWeight: fontWeight.normal,
+  },
+  locationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.md,
+    padding: spacing.lg,
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: borderRadius.lg,
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  locationIcon: {
+    fontSize: fontSize.md,
+  },
+  locationText: {
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.normal,
+    fontFamily: 'monospace',
+  },
+  commentInputContainer: {
+    marginTop: spacing.lg,
+    gap: spacing.lg,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#d4dce6',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 14,
-    color: '#0c1222',
-    minHeight: 80,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    fontSize: fontSize.base,
+    color: colors.textPrimary,
+    minHeight: 100,
     textAlignVertical: 'top',
   },
   commentBtn: {
-    backgroundColor: '#1e3a5f',
-    padding: 14,
-    borderRadius: 10,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
+    minHeight: 36,
+    justifyContent: 'center',
   },
   commentBtnDisabled: {
     opacity: 0.5,
   },
   commentBtnText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
+    color: colors.textInverse,
+    fontWeight: fontWeight.medium,
+    fontSize: fontSize.sm,
   },
   commentCard: {
-    marginTop: 12,
-    padding: 14,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#e4e8ec',
+    borderColor: colors.border,
   },
   commentHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
+  },
+  commentAuthorContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
+    gap: spacing.md,
+    flex: 1,
+  },
+  commentAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  commentAvatarText: {
+    color: colors.textInverse,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
   },
   commentAuthor: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#2a3a4a',
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   commentRole: {
-    fontSize: 10,
-    color: '#1e3a5f',
-    backgroundColor: '#e8f0f8',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    fontWeight: '600',
+    fontSize: fontSize.xs,
+    color: colors.primary,
+    backgroundColor: colors.primaryLighter,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs / 2,
+    borderRadius: borderRadius.md,
+    fontWeight: fontWeight.medium,
+    alignSelf: 'flex-start',
   },
   commentText: {
-    fontSize: 14,
-    color: '#3a4a5a',
-    lineHeight: 20,
+    fontSize: fontSize.base,
+    color: colors.textSecondary,
+    lineHeight: fontSize.base * 1.5,
+    marginTop: spacing.sm,
   },
   commentTime: {
-    marginTop: 8,
-    fontSize: 11,
-    color: '#9aaaba',
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
+    fontWeight: fontWeight.medium,
   },
 });
 

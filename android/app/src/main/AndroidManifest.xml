@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
       android:name=".MainApplication"
@@ -10,6 +12,12 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:supportsRtl="true">
+      <!-- Google Maps API Key -->
+      <!-- Replace YOUR_GOOGLE_MAPS_API_KEY with your actual API key from Google Cloud Console -->
+      <!-- Get your key from: https://console.cloud.google.com/google/maps-apis -->
+      <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="YOUR_GOOGLE_MAPS_API_KEY" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

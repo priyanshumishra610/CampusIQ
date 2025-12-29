@@ -12,6 +12,9 @@ import {
 } from '../../redux/taskSlice';
 import {RootState} from '../../redux/store';
 import {getRoleDisplayName} from '../../config/permissions';
+import {colors} from '../../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../../theme/spacing';
+import {shadows} from '../../theme/shadows';
 
 const statuses: (TaskStatus | 'ALL')[] = [
   'ALL',
@@ -86,12 +89,13 @@ const ExecutiveDashboard = ({navigation}: any) => {
   ) => (
     <View style={styles.filterRow}>
       <Text style={styles.filterLabel}>{title}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScrollContent}>
         <View style={styles.filterOptions}>
           {options.map(option => (
             <TouchableOpacity
               key={option}
               onPress={() => setFn(option as any)}
+              activeOpacity={0.7}
               style={[
                 styles.chip,
                 current === option && styles.chipActive,
@@ -119,7 +123,8 @@ const ExecutiveDashboard = ({navigation}: any) => {
           <TouchableOpacity
             style={[styles.actionBtn, styles.actionProgress]}
             onPress={() => handleStatusChange(task.id, 'IN_PROGRESS', task.createdBy, task.status)}
-            disabled={updating}>
+            disabled={updating}
+            activeOpacity={0.8}>
             <Text style={styles.actionText}>In Progress</Text>
           </TouchableOpacity>
         )}
@@ -127,7 +132,8 @@ const ExecutiveDashboard = ({navigation}: any) => {
           <TouchableOpacity
             style={[styles.actionBtn, styles.actionResolve]}
             onPress={() => handleStatusChange(task.id, 'RESOLVED', task.createdBy, task.status)}
-            disabled={updating}>
+            disabled={updating}
+            activeOpacity={0.8}>
             <Text style={styles.actionText}>Complete</Text>
           </TouchableOpacity>
         )}
@@ -135,7 +141,8 @@ const ExecutiveDashboard = ({navigation}: any) => {
           <TouchableOpacity
             style={[styles.actionBtn, styles.actionEscalate]}
             onPress={() => handleStatusChange(task.id, 'ESCALATED', task.createdBy, task.status)}
-            disabled={updating}>
+            disabled={updating}
+            activeOpacity={0.8}>
             <Text style={styles.actionText}>Escalate</Text>
           </TouchableOpacity>
         )}
@@ -150,45 +157,64 @@ const ExecutiveDashboard = ({navigation}: any) => {
         keyExtractor={item => item.id}
         ListHeaderComponent={
           <>
-            <View style={styles.header}>
-              <View>
-                <Text style={styles.title}>Executive Dashboard</Text>
-                <Text style={styles.subtitle}>
-                  {user?.adminRole ? getRoleDisplayName(user.adminRole) : 'Administrator'} • Operations Overview
-                </Text>
-              </View>
-              {isReadOnly && (
-                <View style={styles.readOnlyBadge}>
-                  <Text style={styles.readOnlyText}>View Only</Text>
+            {/* Header Section */}
+            <View style={styles.headerSection}>
+              <View style={styles.header}>
+                <View style={styles.headerContent}>
+                  <Text style={styles.title}>Executive Dashboard</Text>
+                  <Text style={styles.subtitle}>
+                    {user?.adminRole ? getRoleDisplayName(user.adminRole) : 'Administrator'} • Operations Overview
+                  </Text>
                 </View>
-              )}
-            </View>
-
-            <HealthScoreCard />
-
-            <View style={styles.metricsRow}>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricValue}>{pendingCount}</Text>
-                <Text style={styles.metricLabel}>Pending</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricValue}>{inProgressCount}</Text>
-                <Text style={styles.metricLabel}>In Progress</Text>
-              </View>
-              <View style={[styles.metricCard, escalatedCount > 0 && styles.metricAlert]}>
-                <Text style={[styles.metricValue, escalatedCount > 0 && styles.metricValueAlert]}>
-                  {escalatedCount}
-                </Text>
-                <Text style={styles.metricLabel}>Escalated</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricValue}>{avgResolution}h</Text>
-                <Text style={styles.metricLabel}>Avg. Time</Text>
+                {isReadOnly && (
+                  <View style={styles.readOnlyBadge}>
+                    <Text style={styles.readOnlyText}>View Only</Text>
+                  </View>
+                )}
               </View>
             </View>
 
-            {renderFilters(statusFilter, setStatusFilter, statuses, 'Status')}
-            {renderFilters(priorityFilter, setPriorityFilter, priorities, 'Priority')}
+            {/* Health Score Section */}
+            <View style={styles.section}>
+              <HealthScoreCard />
+            </View>
+
+            {/* Metrics Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Key Metrics</Text>
+              <View style={styles.metricsRow}>
+                <View style={styles.metricCard}>
+                  <Text style={styles.metricValue}>{pendingCount}</Text>
+                  <Text style={styles.metricLabel}>Pending</Text>
+                </View>
+                <View style={styles.metricCard}>
+                  <Text style={styles.metricValue}>{inProgressCount}</Text>
+                  <Text style={styles.metricLabel}>In Progress</Text>
+                </View>
+                <View style={[styles.metricCard, escalatedCount > 0 && styles.metricAlert]}>
+                  <Text style={[styles.metricValue, escalatedCount > 0 && styles.metricValueAlert]}>
+                    {escalatedCount}
+                  </Text>
+                  <Text style={styles.metricLabel}>Escalated</Text>
+                </View>
+                <View style={styles.metricCard}>
+                  <Text style={styles.metricValue}>{avgResolution}h</Text>
+                  <Text style={styles.metricLabel}>Avg. Time</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Filters Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Filters</Text>
+              {renderFilters(statusFilter, setStatusFilter, statuses, 'Status')}
+              {renderFilters(priorityFilter, setPriorityFilter, priorities, 'Priority')}
+            </View>
+
+            {/* Tasks Section Header */}
+            <View style={styles.tasksSectionHeader}>
+              <Text style={styles.sectionTitle}>Tasks ({filtered.length})</Text>
+            </View>
           </>
         }
         renderItem={({item}) => (
@@ -207,7 +233,7 @@ const ExecutiveDashboard = ({navigation}: any) => {
             <EmptyState variant="no-results" />
           )
         }
-        contentContainerStyle={{paddingBottom: 40}}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -217,134 +243,188 @@ const ExecutiveDashboard = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f4f6f9',
+    backgroundColor: colors.background,
+  },
+  listContent: {
+    paddingBottom: spacing['3xl'],
+  },
+  headerSection: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+  },
+  headerContent: {
+    flex: 1,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0c1222',
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#5a6a7a',
-    marginTop: 2,
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.normal,
+    lineHeight: fontSize.sm * 1.5,
   },
   readOnlyBadge: {
-    backgroundColor: '#e8f0f8',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    backgroundColor: colors.primaryLighter,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#d0e0f0',
+    borderColor: colors.border,
+    marginLeft: spacing.md,
   },
   readOnlyText: {
-    fontSize: 11,
-    color: '#1e3a5f',
-    fontWeight: '600',
+    fontSize: fontSize.xs,
+    color: colors.primary,
+    fontWeight: fontWeight.medium,
+  },
+  section: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.lg,
+    backgroundColor: colors.background,
+  },
+  sectionTitle: {
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+    letterSpacing: -0.1,
   },
   metricsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
   metricCard: {
     flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#e4e8ec',
+    borderColor: colors.border,
     alignItems: 'center',
+    minHeight: 88,
+    justifyContent: 'center',
+    ...shadows.sm,
   },
   metricAlert: {
-    borderColor: '#e74c3c',
-    backgroundColor: '#fef5f5',
+    borderColor: colors.error + '30',
+    backgroundColor: colors.error + '08',
   },
   metricValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0c1222',
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.2,
   },
   metricValueAlert: {
-    color: '#c0392b',
+    color: colors.error,
   },
   metricLabel: {
-    fontSize: 10,
-    color: '#7a8a9a',
-    marginTop: 2,
-    textTransform: 'uppercase',
-    fontWeight: '600',
-  },
-  filterRow: {
-    marginBottom: 10,
-  },
-  filterLabel: {
-    fontWeight: '600',
-    color: '#3a4a5a',
-    marginBottom: 6,
-    fontSize: 12,
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.medium,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  filterRow: {
+    marginBottom: spacing.md,
+  },
+  filterLabel: {
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+    fontSize: fontSize.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  filterScrollContent: {
+    paddingRight: spacing.lg,
+  },
   filterOptions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.sm,
   },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#d4dce6',
-    backgroundColor: '#fff',
+    borderColor: colors.border,
+    backgroundColor: colors.backgroundSecondary,
+    minHeight: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   chipActive: {
-    backgroundColor: '#1e3a5f',
-    borderColor: '#1e3a5f',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   chipText: {
-    color: '#3a4a5a',
-    fontWeight: '600',
-    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.medium,
+    fontSize: fontSize.sm,
   },
   chipTextActive: {
-    color: '#fff',
+    color: colors.textInverse,
+    fontWeight: fontWeight.medium,
+  },
+  tasksSectionHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
   },
   cardWrapper: {
-    marginBottom: 12,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
-    gap: 8,
+    marginTop: spacing.sm,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
   actionBtn: {
     flex: 1,
-    padding: 10,
-    borderRadius: 8,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
+    minHeight: 40,
+    justifyContent: 'center',
   },
   actionProgress: {
-    backgroundColor: '#2980b9',
+    backgroundColor: colors.status.inProgress,
   },
   actionResolve: {
-    backgroundColor: '#27ae60',
+    backgroundColor: colors.status.resolved,
   },
   actionEscalate: {
-    backgroundColor: '#c0392b',
+    backgroundColor: colors.status.escalated,
   },
   actionText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 12,
+    color: colors.textInverse,
+    fontWeight: fontWeight.medium,
+    fontSize: fontSize.sm,
   },
 });
 

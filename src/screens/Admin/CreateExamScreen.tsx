@@ -5,6 +5,10 @@ import {createExam, checkExamConflicts, ExamType, clearConflicts} from '../../re
 import {RootState} from '../../redux/store';
 import NetInfo from '@react-native-community/netinfo';
 import PermissionGate from '../../components/PermissionGate';
+import Button from '../../components/Button';
+import {colors} from '../../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../../theme/spacing';
+import {shadows} from '../../theme/shadows';
 
 const examTypes: {value: ExamType; label: string}[] = [
   {value: 'MIDTERM', label: 'Midterm'},
@@ -295,16 +299,15 @@ const CreateExamScreen = ({navigation}: any) => {
           numberOfLines={4}
         />
 
-        <TouchableOpacity
-          style={[styles.checkConflictBtn, conflictChecking && {opacity: 0.7}]}
+        <Button
+          title="🔍 Check for Conflicts"
           onPress={handleCheckConflicts}
-          disabled={conflictChecking}>
-          {conflictChecking ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.checkConflictText}>🔍 Check for Conflicts</Text>
-          )}
-        </TouchableOpacity>
+          variant="secondary"
+          size="md"
+          disabled={conflictChecking}
+          loading={conflictChecking}
+          style={styles.checkConflictBtn}
+        />
 
         {conflicts.length > 0 && (
           <View style={styles.conflictAlert}>
@@ -317,16 +320,15 @@ const CreateExamScreen = ({navigation}: any) => {
           </View>
         )}
 
-        <TouchableOpacity
-          style={[styles.submit, creating && {opacity: 0.7}]}
+        <Button
+          title="Create Exam"
           onPress={handleSubmit}
-          disabled={creating}>
-          {creating ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitText}>Create Exam</Text>
-          )}
-        </TouchableOpacity>
+          variant="primary"
+          size="lg"
+          disabled={creating}
+          loading={creating}
+          style={styles.submit}
+        />
       </ScrollView>
     </PermissionGate>
   );
@@ -335,36 +337,39 @@ const CreateExamScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f4f6f9',
+    padding: spacing.lg,
+    backgroundColor: colors.background,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0c1222',
-    marginBottom: 4,
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#5a6a7a',
-    marginBottom: 20,
-    lineHeight: 18,
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+    lineHeight: fontSize.sm * 1.5,
+    fontWeight: fontWeight.normal,
   },
   label: {
-    fontWeight: '600',
-    color: '#3a4a5a',
-    marginTop: 12,
-    marginBottom: 6,
-    fontSize: 13,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+    fontSize: fontSize.sm,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d4dce6',
-    borderRadius: 10,
-    padding: 14,
-    backgroundColor: '#fff',
-    color: '#0c1222',
-    fontSize: 15,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    backgroundColor: colors.backgroundSecondary,
+    color: colors.textPrimary,
+    fontSize: fontSize.base,
+    minHeight: 40,
   },
   multiline: {
     minHeight: 80,
@@ -372,77 +377,63 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
   },
   halfWidth: {
     flex: 1,
   },
   typeRow: {
-    marginVertical: 8,
+    marginVertical: spacing.sm,
   },
   typeChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#d4dce6',
-    backgroundColor: '#fff',
-    marginRight: 8,
+    borderColor: colors.border,
+    backgroundColor: colors.backgroundSecondary,
+    marginRight: spacing.sm,
+    minHeight: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   typeChipActive: {
-    backgroundColor: '#1e3a5f',
-    borderColor: '#1e3a5f',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   typeChipText: {
-    color: '#3a4a5a',
-    fontWeight: '600',
-    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.medium,
+    fontSize: fontSize.sm,
   },
   typeChipTextActive: {
-    color: '#fff',
+    color: colors.textInverse,
   },
   checkConflictBtn: {
-    backgroundColor: '#f39c12',
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  checkConflictText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
+    marginTop: spacing.lg,
   },
   conflictAlert: {
-    marginTop: 12,
-    padding: 12,
-    backgroundColor: '#fff3cd',
-    borderRadius: 10,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.warning + '15',
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#ffc107',
+    borderColor: colors.warning + '40',
   },
   conflictTitle: {
-    color: '#856404',
-    fontWeight: '700',
-    marginBottom: 6,
-    fontSize: 13,
+    color: colors.warning,
+    fontWeight: fontWeight.semibold,
+    marginBottom: spacing.sm,
+    fontSize: fontSize.sm,
   },
   conflictText: {
-    color: '#856404',
-    fontSize: 12,
-    lineHeight: 18,
+    color: colors.warning,
+    fontSize: fontSize.sm,
+    lineHeight: fontSize.sm * 1.5,
+    fontWeight: fontWeight.normal,
   },
   submit: {
-    backgroundColor: '#1e3a5f',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  submitText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 16,
+    marginTop: spacing.lg,
   },
 });
 

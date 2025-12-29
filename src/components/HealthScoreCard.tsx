@@ -10,6 +10,9 @@ import {
   HealthScoreBreakdown,
 } from '../services/healthScore.service';
 import {generateHealthSummary} from '../services/gemini.service';
+import {colors} from '../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../theme/spacing';
+import {shadows} from '../theme/shadows';
 
 const HealthScoreCard = () => {
   const tasks = useSelector((state: RootState) => state.tasks.items);
@@ -90,7 +93,7 @@ const HealthScoreCard = () => {
 
       <View style={styles.summaryContainer}>
         {loading ? (
-          <ActivityIndicator size="small" color="#5a6a7a" />
+          <ActivityIndicator size="small" color={colors.textSecondary} />
         ) : (
           <Text style={styles.summaryText}>
             {aiSummary || 'Analyzing campus operations...'}
@@ -124,103 +127,110 @@ const BreakdownItem = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#e4e8ec',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: {width: 0, height: 4},
-    elevation: 3,
+    borderColor: colors.border,
+    ...shadows.sm,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0c1222',
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    letterSpacing: -0.1,
   },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
   },
   badgeText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: colors.textInverse,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
   },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    gap: spacing.lg,
+    marginBottom: spacing.lg,
+    paddingVertical: spacing.sm,
   },
   scoreCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    borderWidth: 4,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fafbfc',
+    backgroundColor: colors.backgroundTertiary,
   },
   scoreValue: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    lineHeight: fontSize['2xl'],
+    letterSpacing: -0.3,
   },
   scoreMax: {
-    fontSize: 12,
-    color: '#7a8a9a',
-    marginTop: -2,
+    fontSize: fontSize.base,
+    color: colors.textTertiary,
+    marginTop: -spacing.xs,
+    fontWeight: fontWeight.medium,
   },
   breakdownContainer: {
     flex: 1,
-    gap: 6,
+    gap: spacing.xs,
   },
   breakdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
+    paddingVertical: spacing.xs / 2,
   },
   impactDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: borderRadius.full,
   },
   breakdownLabel: {
     flex: 1,
-    fontSize: 12,
-    color: '#5a6a7a',
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.normal,
   },
   breakdownValue: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+    minWidth: 32,
+    textAlign: 'right',
   },
   summaryContainer: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: spacing.lg,
+    paddingTop: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: '#f0f2f4',
+    borderTopColor: colors.border,
   },
   summaryText: {
-    fontSize: 14,
-    color: '#2a3a4a',
-    lineHeight: 21,
+    fontSize: fontSize.base,
+    color: colors.textSecondary,
+    lineHeight: fontSize.base * 1.5,
+    fontWeight: fontWeight.normal,
+    marginBottom: spacing.xs,
   },
   aiTag: {
-    marginTop: 10,
-    fontSize: 10,
-    color: '#1e3a5f',
-    fontWeight: '600',
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
+    fontWeight: fontWeight.normal,
   },
 });
 

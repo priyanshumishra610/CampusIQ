@@ -5,6 +5,9 @@ import ExamScheduleCard from '../../components/ExamScheduleCard';
 import EmptyState from '../../components/EmptyState';
 import {Exam} from '../../redux/examSlice';
 import {RootState} from '../../redux/store';
+import {colors} from '../../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../../theme/spacing';
+import {shadows} from '../../theme/shadows';
 
 const ExamCalendarScreen = ({navigation}: any) => {
   const {items} = useSelector((state: RootState) => state.exams);
@@ -149,7 +152,7 @@ const ExamCalendarScreen = ({navigation}: any) => {
             <EmptyState variant="no-exam-schedule" />
           )
         }
-        contentContainerStyle={{paddingBottom: 40}}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -159,71 +162,86 @@ const ExamCalendarScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f4f6f9',
+    padding: spacing.lg,
+    backgroundColor: colors.background,
   },
   header: {
-    marginBottom: 20,
+    marginBottom: spacing.lg,
+    padding: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0c1222',
-    marginBottom: 4,
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#5a6a7a',
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.normal,
+    lineHeight: fontSize.sm * 1.5,
   },
   clearFilter: {
-    backgroundColor: '#e8f0f8',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 16,
+    backgroundColor: colors.primaryLighter,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#d0e0f0',
+    borderColor: colors.border,
   },
   clearFilterText: {
-    color: '#1e3a5f',
-    fontSize: 13,
-    fontWeight: '600',
+    color: colors.primary,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
   },
   dateSection: {
-    marginBottom: 24,
+    marginBottom: spacing.lg,
   },
   dateHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: '#1e3a5f',
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   dateTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0c1222',
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    letterSpacing: -0.1,
   },
   dayLabel: {
-    fontSize: 12,
-    color: '#1e3a5f',
-    marginTop: 2,
-    fontWeight: '600',
+    fontSize: fontSize.sm,
+    color: colors.primary,
+    marginTop: spacing.xs / 2,
+    fontWeight: fontWeight.medium,
   },
   examCountBadge: {
-    backgroundColor: '#1e3a5f',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   examCountText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
+    color: colors.textInverse,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+  },
+  listContent: {
+    paddingBottom: spacing['3xl'],
   },
 });
 
 export default ExamCalendarScreen;
+
+
 
 

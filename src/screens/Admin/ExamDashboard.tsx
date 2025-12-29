@@ -4,6 +4,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import ExamCard from '../../components/ExamCard';
 import EmptyState from '../../components/EmptyState';
 import PermissionGate, {usePermission} from '../../components/PermissionGate';
+import Button from '../../components/Button';
 import {
   Exam,
   ExamStatus,
@@ -12,6 +13,9 @@ import {
 } from '../../redux/examSlice';
 import {RootState} from '../../redux/store';
 import {getRoleDisplayName} from '../../config/permissions';
+import {colors} from '../../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../../theme/spacing';
+import {shadows} from '../../theme/shadows';
 
 const statuses: (ExamStatus | 'ALL')[] = [
   'ALL',
@@ -120,15 +124,18 @@ const ExamDashboard = ({navigation}: any) => {
               </View>
               <View style={styles.headerActions}>
                 {canCreateExams && (
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => navigation.navigate('CreateExam')}>
-                    <Text style={styles.addButtonText}>+ Create</Text>
-                  </TouchableOpacity>
+                  <Button
+                    title="Create"
+                    onPress={() => navigation.navigate('CreateExam')}
+                    variant="primary"
+                    size="sm"
+                    style={styles.headerButton}
+                  />
                 )}
                 <TouchableOpacity
                   style={styles.calendarButton}
-                  onPress={() => navigation.navigate('ExamCalendar')}>
+                  onPress={() => navigation.navigate('ExamCalendar')}
+                  activeOpacity={0.7}>
                   <Text style={styles.calendarButtonText}>📅 Calendar</Text>
                 </TouchableOpacity>
                 {isReadOnly && (
@@ -178,12 +185,15 @@ const ExamDashboard = ({navigation}: any) => {
             />
             {canEditExams && item.status === 'DRAFT' && (
               <View style={styles.actions}>
-                <TouchableOpacity
-                  style={[styles.actionBtn, styles.actionSchedule]}
+                <Button
+                  title="Schedule"
                   onPress={() => handleStatusChange(item.id, 'SCHEDULED')}
-                  disabled={updating}>
-                  <Text style={styles.actionText}>Schedule</Text>
-                </TouchableOpacity>
+                  variant="primary"
+                  size="sm"
+                  disabled={updating}
+                  loading={updating}
+                  style={styles.actionButton}
+                />
               </View>
             )}
           </View>
@@ -195,7 +205,7 @@ const ExamDashboard = ({navigation}: any) => {
             <EmptyState variant="no-results" />
           )
         }
-        contentContainerStyle={{paddingBottom: 40}}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -205,164 +215,164 @@ const ExamDashboard = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f4f6f9',
+    padding: spacing.lg,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   headerActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.sm,
     alignItems: 'center',
   },
-  addButton: {
-    backgroundColor: '#1e3a5f',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 13,
+  headerButton: {
+    minWidth: 80,
   },
   calendarButton: {
-    backgroundColor: '#3498db',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.sm,
   },
   calendarButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 13,
+    color: colors.textInverse,
+    fontWeight: fontWeight.medium,
+    fontSize: fontSize.sm,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0c1222',
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#5a6a7a',
-    marginTop: 2,
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.normal,
+    lineHeight: fontSize.sm * 1.5,
   },
   readOnlyBadge: {
-    backgroundColor: '#e8f0f8',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    backgroundColor: colors.primaryLighter,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#d0e0f0',
+    borderColor: colors.border,
   },
   readOnlyText: {
-    fontSize: 11,
-    color: '#1e3a5f',
-    fontWeight: '600',
+    fontSize: fontSize.xs,
+    color: colors.primary,
+    fontWeight: fontWeight.medium,
   },
   metricsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
     flexWrap: 'wrap',
   },
   metricCard: {
     flex: 1,
     minWidth: 80,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#e4e8ec',
+    borderColor: colors.border,
     alignItems: 'center',
+    minHeight: 88,
+    justifyContent: 'center',
+    ...shadows.sm,
   },
   metricAlert: {
-    borderColor: '#e74c3c',
-    backgroundColor: '#fef5f5',
+    borderColor: colors.error + '30',
+    backgroundColor: colors.error + '08',
   },
   metricActive: {
-    borderColor: '#f39c12',
-    backgroundColor: '#fffbf0',
+    borderColor: colors.status.inProgress + '30',
+    backgroundColor: colors.status.inProgress + '08',
   },
   metricValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0c1222',
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.2,
   },
   metricValueAlert: {
-    color: '#c0392b',
+    color: colors.error,
   },
   metricValueActive: {
-    color: '#d68910',
+    color: colors.status.inProgress,
   },
   metricLabel: {
-    fontSize: 10,
-    color: '#7a8a9a',
-    marginTop: 2,
-    textTransform: 'uppercase',
-    fontWeight: '600',
-  },
-  filterRow: {
-    marginBottom: 10,
-  },
-  filterLabel: {
-    fontWeight: '600',
-    color: '#3a4a5a',
-    marginBottom: 6,
-    fontSize: 12,
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.medium,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  filterRow: {
+    marginBottom: spacing.md,
+  },
+  filterLabel: {
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+    fontSize: fontSize.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
   filterOptions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.sm,
   },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#d4dce6',
-    backgroundColor: '#fff',
+    borderColor: colors.border,
+    backgroundColor: colors.backgroundSecondary,
+    minHeight: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   chipActive: {
-    backgroundColor: '#1e3a5f',
-    borderColor: '#1e3a5f',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   chipText: {
-    color: '#3a4a5a',
-    fontWeight: '600',
-    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.medium,
+    fontSize: fontSize.sm,
   },
   chipTextActive: {
-    color: '#fff',
+    color: colors.textInverse,
   },
   cardWrapper: {
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   actions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    gap: 8,
+    justifyContent: 'flex-start',
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
-  actionBtn: {
+  actionButton: {
     flex: 1,
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
+    maxWidth: 200,
   },
-  actionSchedule: {
-    backgroundColor: '#3498db',
-  },
-  actionText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 12,
+  listContent: {
+    paddingBottom: spacing['3xl'],
   },
 });
 

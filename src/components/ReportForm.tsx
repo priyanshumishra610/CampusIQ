@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {getCurrentLocation} from '../services/maps.service';
+import {colors} from '../theme/colors';
+import {spacing, borderRadius, fontSize, fontWeight} from '../theme/spacing';
+import {shadows} from '../theme/shadows';
 
 type Props = {
   onSubmit: (payload: {
@@ -65,7 +68,7 @@ const ReportForm = ({onSubmit, loading}: Props) => {
         value={title}
         onChangeText={setTitle}
         placeholder="Brief summary of the task"
-        placeholderTextColor="#9aaaba"
+        placeholderTextColor={colors.textTertiary}
         style={styles.input}
       />
       <Text style={styles.label}>Details</Text>
@@ -73,22 +76,29 @@ const ReportForm = ({onSubmit, loading}: Props) => {
         value={description}
         onChangeText={setDescription}
         placeholder="Provide context, stakeholders, deadlines, or compliance requirements"
-        placeholderTextColor="#9aaaba"
+        placeholderTextColor={colors.textTertiary}
         style={[styles.input, styles.multiline]}
         multiline
         numberOfLines={5}
       />
       <View style={styles.row}>
-        <TouchableOpacity style={styles.button} onPress={handleLocation}>
+        <TouchableOpacity
+          style={[styles.button, location && {backgroundColor: colors.success}]}
+          onPress={handleLocation}
+          activeOpacity={0.8}
+          disabled={locating}>
           {locating ? (
-            <ActivityIndicator color="#fff" size="small" />
+            <ActivityIndicator color={colors.textInverse} size="small" />
           ) : (
             <Text style={styles.buttonText}>
               {location ? '✓ Location Added' : '📍 Add Location'}
             </Text>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleImage}>
+        <TouchableOpacity
+          style={[styles.button, imageBase64 && {backgroundColor: colors.success}]}
+          onPress={handleImage}
+          activeOpacity={0.8}>
           <Text style={styles.buttonText}>
             {imageBase64 ? '✓ Photo Added' : '📷 Add Photo'}
           </Text>
@@ -101,11 +111,12 @@ const ReportForm = ({onSubmit, loading}: Props) => {
         />
       )}
       <TouchableOpacity
-        style={[styles.submit, loading && {opacity: 0.7}]}
+        style={[styles.submit, loading && {opacity: 0.6}]}
         onPress={submit}
-        disabled={loading}>
+        disabled={loading || !title || !description}
+        activeOpacity={0.8}>
         {loading ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textInverse} />
         ) : (
           <Text style={styles.submitText}>Create Task</Text>
         )}
@@ -116,60 +127,71 @@ const ReportForm = ({onSubmit, loading}: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    gap: 8,
+    gap: spacing.md,
   },
   label: {
-    fontWeight: '600',
-    color: '#3a4a5a',
-    marginTop: 8,
-    fontSize: 13,
+    fontWeight: fontWeight.medium,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+    fontSize: fontSize.xs,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d4dce6',
-    borderRadius: 10,
-    padding: 14,
-    backgroundColor: '#fff',
-    color: '#0c1222',
-    fontSize: 15,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.backgroundSecondary,
+    color: colors.textPrimary,
+    fontSize: fontSize.base,
   },
   multiline: {
     minHeight: 120,
     textAlignVertical: 'top',
+    paddingTop: spacing.md,
   },
   row: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 8,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
   button: {
     flex: 1,
-    backgroundColor: '#2980b9',
-    padding: 14,
-    borderRadius: 10,
+    backgroundColor: colors.info,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
+    minHeight: 36,
+    justifyContent: 'center',
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 13,
+    color: colors.textInverse,
+    fontWeight: fontWeight.medium,
+    fontSize: fontSize.sm,
   },
   preview: {
-    height: 160,
-    borderRadius: 10,
-    marginTop: 8,
+    height: 180,
+    borderRadius: borderRadius.md,
+    marginTop: spacing.sm,
+    backgroundColor: colors.backgroundTertiary,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   submit: {
-    backgroundColor: '#1e3a5f',
-    padding: 16,
-    borderRadius: 10,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: spacing.md,
+    minHeight: 40,
+    justifyContent: 'center',
   },
   submitText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 16,
+    color: colors.textInverse,
+    fontWeight: fontWeight.medium,
+    fontSize: fontSize.base,
   },
 });
 
