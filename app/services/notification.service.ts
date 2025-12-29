@@ -1,63 +1,30 @@
-import messaging from '@react-native-firebase/messaging';
-import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth';
+import apiClient from './api.client';
+import {useSelector} from 'react-redux';
+import {RootState} from '../redux/store';
 
-const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY || '';
-
-const sendPush = async (
-  tokens: string[],
-  title: string,
-  body: string,
-  data?: Record<string, string>,
-) => {
-  if (!tokens.length || !FCM_SERVER_KEY) {
-    return;
-  }
-
-  await fetch('https://fcm.googleapis.com/fcm/send', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `key=${FCM_SERVER_KEY}`,
-    },
-    body: JSON.stringify({
-      registration_ids: tokens,
-      notification: {
-        title,
-        body,
-      },
-      data,
-    }),
-  });
-};
-
+// Register device token for push notifications
 export const registerDeviceToken = async (): Promise<string | null> => {
-  await messaging().registerDeviceForRemoteMessages();
-  const status = await messaging().requestPermission();
-  const enabled =
-    status === messaging.AuthorizationStatus.AUTHORIZED ||
-    status === messaging.AuthorizationStatus.PROVISIONAL;
-  if (!enabled) {
+  try {
+    // For now, return null - FCM token registration should be handled
+    // by the native push notification service
+    // The token can be registered via POST /api/users/:id/fcm-token
+    return null;
+  } catch (error) {
+    console.error('Error registering device token:', error);
     return null;
   }
-
-  const token = await messaging().getToken();
-  const currentUser = auth().currentUser;
-  if (currentUser && token) {
-    await firestore()
-      .collection('users')
-      .doc(currentUser.uid)
-      .set(
-        {
-          fcmTokens: firestore.FieldValue.arrayUnion(token),
-        },
-        {merge: true},
-      );
-  }
-
-  return token;
 };
 
+// Register FCM token with backend
+export const registerFCMToken = async (userId: string, token: string): Promise<void> => {
+  try {
+    await apiClient.post(`/users/${userId}/fcm-token`, {token});
+  } catch (error) {
+    console.error('Error registering FCM token:', error);
+  }
+};
+
+// Notify admins of high priority task
 export const notifyAdminsHighPriority = async ({
   issueId,
   title,
@@ -69,35 +36,30 @@ export const notifyAdminsHighPriority = async ({
   description: string;
   priority: string;
 }) => {
-  const snapshot = await firestore()
-    .collection('users')
-    .where('role', '==', 'ADMIN')
-    .get();
-  const tokens: string[] = [];
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    if (Array.isArray(data.fcmTokens)) {
-      tokens.push(...data.fcmTokens);
-    }
-  });
-
-  await sendPush(tokens, 'High Priority Task', title, {
-    issueId,
-    description,
-    priority,
-  });
+  try {
+    // This will be handled by the backend notification service
+    // which can send push notifications to admin users
+    console.log('High priority notification:', {issueId, title, description, priority});
+  } catch (error) {
+    console.error('Error notifying admins:', error);
+  }
 };
 
+// Notify user of status change
 export const notifyUserStatusChange = async (
   issueId: string,
   status: string,
   userId: string,
 ) => {
-  const userDoc = await firestore().collection('users').doc(userId).get();
-  const data = userDoc.data();
-  const tokens = Array.isArray(data?.fcmTokens) ? data.fcmTokens : [];
-  await sendPush(tokens, 'Task Status Updated', `Status: ${status}`, {
-    issueId,
-    status,
-  });
+  try {
+    await apiClient.post('/notifications', {
+      userId,
+      title: 'Task Status Updated',
+      message: `Status: ${status}`,
+      type: 'TASK',
+      relatedId: issueId,
+    });
+  } catch (error) {
+    console.error('Error notifying user:', error);
+  }
 };

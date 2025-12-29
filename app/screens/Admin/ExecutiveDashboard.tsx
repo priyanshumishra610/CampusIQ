@@ -1,8 +1,9 @@
 import React, {useMemo, useState} from 'react';
 import {View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useDispatch, useSelector} from 'react-redux';
 import {TaskCard} from '../../components/Task';
-import {HealthScoreCard, EmptyState, PermissionGate, usePermission} from '../../components/Common';
+import {HealthScoreCard, EmptyState, PermissionGate, usePermission, MetricTile, PremiumCard, ActionButton} from '../../components/Common';
 import {
   TaskPriority,
   TaskStatus,
@@ -10,6 +11,8 @@ import {
 } from '../../redux/slices/taskSlice';
 import {RootState} from '../../redux/store';
 import {getRoleDisplayName} from '../../config/permissions';
+import {useTheme} from '../../theme/ThemeContext';
+import {Typography, Spacing, BorderRadius} from '../../theme/designTokens';
 
 const statuses: (TaskStatus | 'ALL')[] = [
   'ALL',
@@ -22,6 +25,7 @@ const priorities: (TaskPriority | 'ALL')[] = ['ALL', 'LOW', 'MEDIUM', 'HIGH'];
 
 const ExecutiveDashboard = ({navigation}: any) => {
   const dispatch = useDispatch();
+  const {colors} = useTheme();
   const {items, updating} = useSelector((state: RootState) => state.tasks);
   const user = useSelector((state: RootState) => state.auth.user);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'ALL'>('ALL');
@@ -48,11 +52,11 @@ const ExecutiveDashboard = ({navigation}: any) => {
       const created =
         task.createdAt instanceof Date
           ? task.createdAt.getTime()
-          : task.createdAt?.toDate?.().getTime?.() || 0;
+          : task.createdAt?.toDate?.().getTime() || 0;
       const resolvedAt =
         task.resolvedAt instanceof Date
           ? task.resolvedAt.getTime()
-          : task.resolvedAt?.toDate?.().getTime?.() || 0;
+          : task.resolvedAt?.toDate?.().getTime() || 0;
       if (!created || !resolvedAt) return sum;
       return sum + (resolvedAt - created) / (1000 * 60 * 60);
     }, 0);
@@ -83,7 +87,7 @@ const ExecutiveDashboard = ({navigation}: any) => {
     title: string,
   ) => (
     <View style={styles.filterRow}>
-      <Text style={styles.filterLabel}>{title}</Text>
+      <Text style={[styles.filterLabel, {color: colors.textSecondary}]}>{title}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.filterOptions}>
           {options.map(option => (
@@ -92,12 +96,17 @@ const ExecutiveDashboard = ({navigation}: any) => {
               onPress={() => setFn(option as any)}
               style={[
                 styles.chip,
-                current === option && styles.chipActive,
+                {
+                  backgroundColor: current === option ? colors.primary : colors.surface,
+                  borderColor: current === option ? colors.primary : colors.border,
+                },
               ]}>
               <Text
                 style={[
                   styles.chipText,
-                  current === option && styles.chipTextActive,
+                  {
+                    color: current === option ? colors.textInverse : colors.textSecondary,
+                  },
                 ]}>
                 {option}
               </Text>
@@ -114,35 +123,41 @@ const ExecutiveDashboard = ({navigation}: any) => {
     return (
       <View style={styles.actions}>
         {task.status !== 'IN_PROGRESS' && task.status !== 'RESOLVED' && (
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionProgress]}
+          <ActionButton
+            label="In Progress"
             onPress={() => handleStatusChange(task.id, 'IN_PROGRESS', task.createdBy, task.status)}
-            disabled={updating}>
-            <Text style={styles.actionText}>In Progress</Text>
-          </TouchableOpacity>
+            variant="secondary"
+            size="sm"
+            disabled={updating}
+            style={styles.actionBtn}
+          />
         )}
         {canCloseTasks && task.status !== 'RESOLVED' && (
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionResolve]}
+          <ActionButton
+            label="Complete"
             onPress={() => handleStatusChange(task.id, 'RESOLVED', task.createdBy, task.status)}
-            disabled={updating}>
-            <Text style={styles.actionText}>Complete</Text>
-          </TouchableOpacity>
+            variant="success"
+            size="sm"
+            disabled={updating}
+            style={styles.actionBtn}
+          />
         )}
         {canEscalate && task.status !== 'ESCALATED' && task.status !== 'RESOLVED' && (
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionEscalate]}
+          <ActionButton
+            label="Escalate"
             onPress={() => handleStatusChange(task.id, 'ESCALATED', task.createdBy, task.status)}
-            disabled={updating}>
-            <Text style={styles.actionText}>Escalate</Text>
-          </TouchableOpacity>
+            variant="danger"
+            size="sm"
+            disabled={updating}
+            style={styles.actionBtn}
+          />
         )}
       </View>
     );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: colors.background}]}>
       <FlatList
         data={filtered}
         keyExtractor={item => item.id}
@@ -150,39 +165,132 @@ const ExecutiveDashboard = ({navigation}: any) => {
           <>
             <View style={styles.header}>
               <View>
-                <Text style={styles.title}>Executive Dashboard</Text>
-                <Text style={styles.subtitle}>
+                <Text style={[styles.title, {color: colors.textPrimary}]}>Executive Dashboard</Text>
+                <Text style={[styles.subtitle, {color: colors.textTertiary}]}>
                   {user?.adminRole ? getRoleDisplayName(user.adminRole) : 'Administrator'} • Operations Overview
                 </Text>
               </View>
               {isReadOnly && (
-                <View style={styles.readOnlyBadge}>
-                  <Text style={styles.readOnlyText}>View Only</Text>
+                <View style={[styles.readOnlyBadge, {backgroundColor: colors.borderLight, borderColor: colors.border}]}>
+                  <Text style={[styles.readOnlyText, {color: colors.primary}]}>View Only</Text>
                 </View>
               )}
             </View>
 
             <HealthScoreCard />
 
+            {/* Enterprise Analytics Tiles */}
+            <View style={styles.analyticsSection}>
+              <Text style={[styles.analyticsTitle, {color: colors.textPrimary}]}>Campus Health Index</Text>
+              <View style={styles.analyticsGrid}>
+                <MetricTile
+                  value={`${Math.round((resolvedCount / Math.max(items.length, 1)) * 100)}%`}
+                  label="Resolution Rate"
+                  icon="bar-chart"
+                  variant="highlight"
+                />
+                <MetricTile
+                  value={`${avgResolution}h`}
+                  label="Avg Resolution"
+                  icon="flash-on"
+                  variant="default"
+                />
+                <MetricTile
+                  value={items.filter(t => t.priority === 'HIGH' || t.priority === 'URGENT').length}
+                  label="High Priority"
+                  icon="priority-high"
+                  variant={items.filter(t => t.priority === 'HIGH' || t.priority === 'URGENT').length > 0 ? 'alert' : 'default'}
+                />
+                <MetricTile
+                  value={items.filter(t => {
+                    const created = t.createdAt instanceof Date
+                      ? t.createdAt.getTime()
+                      : t.createdAt?.toDate?.().getTime() || 0;
+                    const daysOld = (Date.now() - created) / (1000 * 60 * 60 * 24);
+                    return daysOld <= 7;
+                  }).length}
+                  label="This Week"
+                  icon="trending-up"
+                  variant="default"
+                />
+              </View>
+            </View>
+
+            {/* Predictive Analytics Tiles */}
+            <View style={styles.predictiveSection}>
+              <Text style={[styles.analyticsTitle, {color: colors.textPrimary}]}>Predictive Insights</Text>
+              <View style={styles.predictiveGrid}>
+                <PremiumCard
+                  variant="outlined"
+                  style={[
+                    styles.predictiveTile,
+                    escalatedCount > 5 && {
+                      backgroundColor: colors.errorLight,
+                      borderColor: colors.error + '30',
+                    },
+                  ]}>
+                  <View style={styles.predictiveIconContainer}>
+                    <Icon
+                      name="warning"
+                      size={24}
+                      color={escalatedCount > 5 ? colors.error : colors.warning}
+                    />
+                  </View>
+                  <Text style={[styles.predictiveText, {color: colors.textPrimary}]}>
+                    {escalatedCount > 5
+                      ? 'High escalation rate detected'
+                      : escalatedCount > 0
+                      ? 'Some escalations pending'
+                      : 'No escalations'}
+                  </Text>
+                </PremiumCard>
+                <PremiumCard
+                  variant="outlined"
+                  style={[
+                    styles.predictiveTile,
+                    avgResolution > 48 && {
+                      backgroundColor: colors.warningLight,
+                      borderColor: colors.warning + '30',
+                    },
+                  ]}>
+                  <View style={styles.predictiveIconContainer}>
+                    <Icon
+                      name="schedule"
+                      size={24}
+                      color={avgResolution > 48 ? colors.warning : colors.textSecondary}
+                    />
+                  </View>
+                  <Text style={[styles.predictiveText, {color: colors.textPrimary}]}>
+                    {avgResolution > 48
+                      ? 'Resolution time above target'
+                      : 'Resolution time optimal'}
+                  </Text>
+                </PremiumCard>
+              </View>
+            </View>
+
+            {/* Key Metrics - Fixed Text Wrapping */}
             <View style={styles.metricsRow}>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricValue}>{pendingCount}</Text>
-                <Text style={styles.metricLabel}>Pending</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricValue}>{inProgressCount}</Text>
-                <Text style={styles.metricLabel}>In Progress</Text>
-              </View>
-              <View style={[styles.metricCard, escalatedCount > 0 && styles.metricAlert]}>
-                <Text style={[styles.metricValue, escalatedCount > 0 && styles.metricValueAlert]}>
-                  {escalatedCount}
-                </Text>
-                <Text style={styles.metricLabel}>Escalated</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricValue}>{avgResolution}h</Text>
-                <Text style={styles.metricLabel}>Avg. Time</Text>
-              </View>
+              <MetricTile
+                value={pendingCount}
+                label="Pending"
+                variant="default"
+              />
+              <MetricTile
+                value={inProgressCount}
+                label="In Progress"
+                variant="highlight"
+              />
+              <MetricTile
+                value={escalatedCount}
+                label="Escalated"
+                variant={escalatedCount > 0 ? 'alert' : 'default'}
+              />
+              <MetricTile
+                value={`${avgResolution}h`}
+                label="Avg Time"
+                variant="default"
+              />
             </View>
 
             {renderFilters(statusFilter, setStatusFilter, statuses, 'Status')}
@@ -205,7 +313,7 @@ const ExecutiveDashboard = ({navigation}: any) => {
             <EmptyState variant="no-results" />
           )
         }
-        contentContainerStyle={{paddingBottom: 40}}
+        contentContainerStyle={{paddingBottom: 40, padding: Spacing.base}}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -215,136 +323,113 @@ const ExecutiveDashboard = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f4f6f9',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: Spacing.base,
+    padding: Spacing.base,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0c1222',
+    fontSize: Typography.fontSize['3xl'],
+    fontWeight: Typography.fontWeight.extrabold,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#5a6a7a',
-    marginTop: 2,
+    fontSize: Typography.fontSize.sm,
+    marginTop: Spacing.xs,
   },
   readOnlyBadge: {
-    backgroundColor: '#e8f0f8',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.base,
     borderWidth: 1,
-    borderColor: '#d0e0f0',
   },
   readOnlyText: {
-    fontSize: 11,
-    color: '#1e3a5f',
-    fontWeight: '600',
+    fontSize: Typography.fontSize.xs,
+    fontWeight: Typography.fontWeight.semibold,
   },
   metricsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
-  },
-  metricCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e4e8ec',
-    alignItems: 'center',
-  },
-  metricAlert: {
-    borderColor: '#e74c3c',
-    backgroundColor: '#fef5f5',
-  },
-  metricValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0c1222',
-  },
-  metricValueAlert: {
-    color: '#c0392b',
-  },
-  metricLabel: {
-    fontSize: 10,
-    color: '#7a8a9a',
-    marginTop: 2,
-    textTransform: 'uppercase',
-    fontWeight: '600',
+    gap: Spacing.base,
+    marginBottom: Spacing.base,
+    paddingHorizontal: Spacing.base,
   },
   filterRow: {
-    marginBottom: 10,
+    marginBottom: Spacing.base,
+    paddingHorizontal: Spacing.base,
   },
   filterLabel: {
-    fontWeight: '600',
-    color: '#3a4a5a',
-    marginBottom: 6,
-    fontSize: 12,
+    fontWeight: Typography.fontWeight.semibold,
+    marginBottom: Spacing.sm,
+    fontSize: Typography.fontSize.xs,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   filterOptions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: Spacing.sm,
   },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.base,
     borderWidth: 1,
-    borderColor: '#d4dce6',
-    backgroundColor: '#fff',
-  },
-  chipActive: {
-    backgroundColor: '#1e3a5f',
-    borderColor: '#1e3a5f',
   },
   chipText: {
-    color: '#3a4a5a',
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  chipTextActive: {
-    color: '#fff',
+    fontWeight: Typography.fontWeight.semibold,
+    fontSize: Typography.fontSize.xs,
   },
   cardWrapper: {
-    marginBottom: 12,
+    marginBottom: Spacing.base,
+    paddingHorizontal: Spacing.base,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
-    gap: 8,
+    marginTop: Spacing.sm,
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.base,
   },
   actionBtn: {
     flex: 1,
-    padding: 10,
-    borderRadius: 8,
+  },
+  analyticsSection: {
+    marginBottom: Spacing.base,
+    paddingHorizontal: Spacing.base,
+  },
+  analyticsTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.fontWeight.bold,
+    marginBottom: Spacing.base,
+  },
+  analyticsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.base,
+  },
+  predictiveSection: {
+    marginBottom: Spacing.base,
+    paddingHorizontal: Spacing.base,
+  },
+  predictiveGrid: {
+    gap: Spacing.base,
+  },
+  predictiveTile: {
+    flexDirection: 'row',
     alignItems: 'center',
+    padding: Spacing.base,
   },
-  actionProgress: {
-    backgroundColor: '#2980b9',
+  predictiveIconContainer: {
+    marginRight: Spacing.base,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  actionResolve: {
-    backgroundColor: '#27ae60',
-  },
-  actionEscalate: {
-    backgroundColor: '#c0392b',
-  },
-  actionText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 12,
+  predictiveText: {
+    flex: 1,
+    fontSize: Typography.fontSize.sm,
+    fontWeight: Typography.fontWeight.medium,
   },
 });
 
 export default ExecutiveDashboard;
-

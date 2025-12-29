@@ -1,10 +1,10 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import apiClient from '../../services/api.client';
 import {registerDeviceToken} from '../../services/notification.service';
 import {AdminRole} from '../../config/permissions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type Role = 'USER' | 'ADMIN';
+export type Role = 'STUDENT' | 'FACULTY' | 'ADMIN' | 'SUPPORT' | 'SECURITY' | 'HR_ADMIN' | 'HR_MANAGER' | 'HR_STAFF';
 
 export type UserProfile = {
   id: string;
@@ -13,7 +13,17 @@ export type UserProfile = {
   role: Role;
   adminRole?: AdminRole;
   department?: string;
+  campusId?: string;
+  campusName?: string;
+  studentId?: string; // For students
+  facultyId?: string; // For faculty
+  enrollmentNumber?: string; // For students
+  employeeId?: string; // For faculty/staff
+  phoneNumber?: string;
+  profileImageUrl?: string;
   fcmTokens?: string[];
+  createdAt?: number;
+  updatedAt?: number;
 };
 
 type AuthState = {
@@ -29,45 +39,44 @@ const initialState: AuthState = {
   initializing: true,
 };
 
-const mapUserDoc = (id: string, data: any): UserProfile => ({
-  id,
-  name: data?.name || '',
-  email: data?.email || '',
-  role: data?.role || 'USER',
-  adminRole: data?.adminRole,
-  department: data?.department,
-  fcmTokens: data?.fcmTokens || [],
+const mapUserData = (data: any): UserProfile => ({
+  id: data.id,
+  name: data.name || '',
+  email: data.email || '',
+  role: data.role || 'STUDENT',
+  adminRole: data.adminRole,
+  department: data.department,
+  campusId: data.campusId,
+  campusName: data.campusName,
+  studentId: data.studentId,
+  facultyId: data.facultyId,
+  enrollmentNumber: data.enrollmentNumber,
+  employeeId: data.employeeId,
+  phoneNumber: data.phoneNumber,
+  profileImageUrl: data.profileImageUrl,
+  fcmTokens: data.fcmTokens || [],
+  createdAt: data.createdAt ? new Date(data.createdAt).getTime() : undefined,
+  updatedAt: data.updatedAt ? new Date(data.updatedAt).getTime() : undefined,
 });
 
 export const initAuthListener = createAsyncThunk(
   'auth/init',
-  async (_, {dispatch}) =>
-    new Promise<void>(resolve => {
-      let resolved = false;
-      auth().onAuthStateChanged(async current => {
-        if (current) {
-          const doc = await firestore().collection('users').doc(current.uid).get();
-          if (doc.exists) {
-            dispatch(setUser(mapUserDoc(doc.id, doc.data())));
-          } else {
-            dispatch(
-              setUser({
-                id: current.uid,
-                name: current.displayName || '',
-                email: current.email || '',
-                role: 'USER',
-              }),
-            );
-          }
-        } else {
-          dispatch(clearUser());
-        }
-        if (!resolved) {
-          resolved = true;
-          resolve();
-        }
-      });
-    }),
+  async (_, {dispatch}) => {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      if (token) {
+        apiClient.setToken(token);
+        const userData = await apiClient.getCurrentUser();
+        dispatch(setUser(mapUserData(userData)));
+      } else {
+        dispatch(clearUser());
+      }
+    } catch (error) {
+      // Token invalid or expired
+      await AsyncStorage.removeItem('auth_token');
+      dispatch(clearUser());
+    }
+  },
 );
 
 export const signIn = createAsyncThunk(
@@ -77,19 +86,12 @@ export const signIn = createAsyncThunk(
     {rejectWithValue},
   ) => {
     try {
-      const credential = await auth().signInWithEmailAndPassword(email, password);
-      const doc = await firestore()
-        .collection('users')
-        .doc(credential.user.uid)
-        .get();
-      if (!doc.exists) {
-        throw new Error('Profile missing');
-      }
-      const profile = mapUserDoc(doc.id, doc.data());
+      const response = await apiClient.login(email, password);
+      const profile = mapUserData(response.user);
       await registerDeviceToken();
       return profile;
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Sign in failed');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Sign in failed');
     }
   },
 );
@@ -115,29 +117,25 @@ export const signUp = createAsyncThunk(
     {rejectWithValue},
   ) => {
     try {
-      const credential = await auth().createUserWithEmailAndPassword(
+      const response = await apiClient.register({
         email,
         password,
-      );
-      const profile: UserProfile = {
-        id: credential.user.uid,
-        email,
         name,
         role,
         adminRole,
         department,
-      };
-      await firestore().collection('users').doc(profile.id).set(profile);
+      });
+      const profile = mapUserData(response.user);
       await registerDeviceToken();
       return profile;
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Sign up failed');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Sign up failed');
     }
   },
 );
 
 export const signOut = createAsyncThunk('auth/signOut', async () => {
-  await auth().signOut();
+  await apiClient.logout();
 });
 
 const authSlice = createSlice({

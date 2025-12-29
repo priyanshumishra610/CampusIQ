@@ -15,7 +15,7 @@
  * - Pings are automatically anonymized and aggregated
  */
 
-import {functions} from './firebase';
+import apiClient from './api.client';
 import {getCurrentLocation} from './maps.service';
 
 let locationTrackingInterval: NodeJS.Timeout | null = null;
@@ -35,13 +35,10 @@ export const submitLocationPing = async (): Promise<boolean> => {
       return false;
     }
     
-    // Call Cloud Function to submit ping
-    const submitPing = functions().httpsCallable('submitLocationPing');
-    await submitPing({
-      lat: location.lat,
-      lng: location.lng,
-      accuracy: null, // Optional: can add accuracy if needed
-    });
+    // Note: Backend doesn't have location ping endpoint yet
+    // This would need to be added
+    // For now, just log (privacy-safe)
+    console.log('[CrowdIntelligence] Location ping would be submitted');
     
     return true;
   } catch (error: any) {
@@ -98,17 +95,22 @@ export const getHeatmapData = async (
     lng: number;
     count: number;
     lastUpdated: any;
-    timeWindow: string;
   }>;
-  count: number;
+  timestamp: number;
 }> => {
   try {
-    const getHeatmap = functions().httpsCallable('getHeatmapData');
-    const result = await getHeatmap({ timeWindow });
-    return result.data as any;
+    // Note: Backend doesn't have heatmap endpoint yet
+    // This would need to be added
+    // Return empty data for now
+    return {
+      cells: [],
+      timestamp: Date.now(),
+    };
   } catch (error: any) {
     console.error('[CrowdIntelligence] Error fetching heatmap data:', error);
-    throw error;
+    return {
+      cells: [],
+      timestamp: Date.now(),
+    };
   }
 };
-

@@ -1,7 +1,4 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import firestore, {
-  FirebaseFirestoreTypes,
-} from '@react-native-firebase/firestore';
 import {AppDispatch, RootState} from '../store';
 import {
   analyzeTaskWithGemini,
@@ -14,30 +11,30 @@ import {
 import {UserProfile} from './authSlice';
 import {createAuditLog} from './auditSlice';
 import {AdminRole} from '../../config/permissions';
-import {
-  secureCreateTask,
-  secureUpdateTaskStatus,
-  secureAddTaskComment,
-} from '../../services/security.service';
+import apiClient from '../../services/api.client';
+import socketClient from '../../services/socket.client';
 
-export type TaskStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'ESCALATED';
-export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export type Task = {
   id: string;
   title: string;
   description: string;
-  category: string;
+  category?: string;
   priority: TaskPriority;
   status: TaskStatus;
   location?: {lat: number; lng: number};
   createdBy: string;
-  createdAt: FirebaseFirestoreTypes.Timestamp | Date;
-  resolvedAt?: FirebaseFirestoreTypes.Timestamp | Date;
+  createdAt: Date | number;
+  resolvedAt?: Date | number;
   aiSummary?: string;
   imageBase64?: string;
   createdByName?: string;
   assignedTo?: string;
+  assignedToName?: string;
+  assignedByName?: string;
+  dueDate?: Date | number;
   comments?: TaskComment[];
 };
 
@@ -66,43 +63,58 @@ const initialState: TaskState = {
   updating: false,
 };
 
+// Fetch tasks (replaces real-time listener)
+export const fetchTasks = createAsyncThunk(
+  'tasks/fetch',
+  async (
+    {role, userId}: {role: UserProfile['role']; userId: string},
+    {rejectWithValue},
+  ) => {
+    try {
+      const params: any = {};
+      if (role !== 'ADMIN') {
+        params.assignedTo = userId;
+      }
+      
+      const data = await apiClient.get('/tasks', params);
+      
+      return data.map((task: any) => ({
+        ...task,
+        createdAt: task.createdAt ? new Date(task.createdAt).getTime() : Date.now(),
+        resolvedAt: task.resolvedAt ? new Date(task.resolvedAt).getTime() : undefined,
+        dueDate: task.dueDate ? new Date(task.dueDate).getTime() : undefined,
+      })) as Task[];
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Failed to fetch tasks');
+    }
+  },
+);
+
 export const startTaskListener = createAsyncThunk<
   () => void,
   {role: UserProfile['role']; userId: string}
 >('tasks/startListener', async ({role, userId}, {dispatch}) => {
-  const collectionRef = firestore().collection('issues');
-  const queryRef =
-    role === 'ADMIN'
-      ? collectionRef.orderBy('createdAt', 'desc')
-      : collectionRef
-          .where('createdBy', '==', userId)
-          .orderBy('createdAt', 'desc');
-
-  const unsubscribe = queryRef.onSnapshot(snapshot => {
-    const tasks = snapshot.docs.map<Task>(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        title: data.title,
-        description: data.description,
-        category: data.category,
-        priority: data.priority,
-        status: data.status,
-        location: data.location,
-        createdBy: data.createdBy,
-        createdByName: data.createdByName,
-        createdAt: data.createdAt,
-        resolvedAt: data.resolvedAt,
-        aiSummary: data.aiSummary,
-        imageBase64: data.imageBase64,
-        assignedTo: data.assignedTo,
-        comments: data.comments,
-      };
-    });
-    dispatch(setTasks(tasks));
+  // Set up Socket.IO listener for real-time updates
+  const unsubscribe = socketClient.on('notification', (data: any) => {
+    if (data.type === 'TASK') {
+      // Refresh tasks when task-related notification received
+      dispatch(fetchTasks({role, userId}));
+    }
   });
 
-  return unsubscribe;
+  // Initial fetch
+  dispatch(fetchTasks({role, userId}));
+
+  // Poll for updates every 30 seconds
+  const pollInterval = setInterval(() => {
+    dispatch(fetchTasks({role, userId}));
+  }, 30000);
+
+  // Return cleanup function
+  return () => {
+    unsubscribe();
+    clearInterval(pollInterval);
+  };
 });
 
 export const stopTaskListener = createAsyncThunk<void, void, {state: RootState}>(
@@ -126,6 +138,9 @@ export const createTask = createAsyncThunk(
       createdBy,
       createdByName,
       creatorRole,
+      assignedTo,
+      priority,
+      dueDate,
     }: {
       title: string;
       description: string;
@@ -134,44 +149,30 @@ export const createTask = createAsyncThunk(
       createdBy: string;
       createdByName?: string;
       creatorRole?: AdminRole;
+      assignedTo?: string;
+      priority?: TaskPriority;
+      dueDate?: Date | number;
     },
     {rejectWithValue, dispatch},
   ) => {
     try {
-      // 🔐 SECURITY: Use secure Cloud Function endpoint instead of direct Firestore write
-      // This validates permissions, rate limits, and input sanitization server-side
-      
       // Get AI analysis first (for category/priority suggestions)
       let ai: GeminiTaskInsights | null = null;
       try {
         ai = await analyzeTaskWithGemini(title, description);
       } catch (aiError) {
-        // Continue even if AI fails - Cloud Function will use defaults
         console.warn('AI analysis failed, using defaults:', aiError);
       }
 
-      // Call secure Cloud Function endpoint
-      const result = await secureCreateTask({
+      const response = await apiClient.post('/tasks', {
         title,
         description,
-        location,
-        imageBase64,
-        category: ai?.category,
-        priority: ai?.priority,
+        assignedTo: assignedTo || createdBy,
+        priority: priority || ai?.priority || 'MEDIUM',
+        dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
       });
 
-      const taskId = result.taskId;
-
-      // Update task with AI summary if available (read-only field, safe to update)
-      if (ai?.summary) {
-        await firestore().collection('issues').doc(taskId).update({
-          aiSummary: ai.summary,
-        });
-      }
-
-      // Fetch the created task to return it
-      const taskDoc = await firestore().collection('issues').doc(taskId).get();
-      const taskData = taskDoc.data()!;
+      const taskId = response.id;
 
       // Send notification if high priority
       if (ai && ai.priority === 'HIGH') {
@@ -183,13 +184,37 @@ export const createTask = createAsyncThunk(
         }).catch(() => {});
       }
 
+      // Create audit log
+      dispatch(
+        createAuditLog({
+          action: 'task:created',
+          performedBy: {
+            id: createdBy,
+            name: createdByName || '',
+            role: creatorRole || 'ADMIN',
+          },
+          entityType: 'Task',
+          entityId: taskId,
+          details: {title, priority: ai?.priority || priority},
+        }),
+      );
+
       return {
         id: taskId,
-        ...taskData,
-        createdAt: taskData.createdAt?.toDate?.() || new Date(),
+        title,
+        description,
+        category: ai?.category,
+        priority: ai?.priority || priority || 'MEDIUM',
+        status: 'PENDING' as TaskStatus,
+        location,
+        createdBy,
+        createdByName,
+        assignedTo: assignedTo || createdBy,
+        createdAt: new Date(),
+        aiSummary: ai?.summary,
       } as Task;
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Could not create task');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Could not create task');
     }
   },
 );
@@ -215,20 +240,28 @@ export const updateTaskStatus = createAsyncThunk(
     {rejectWithValue, dispatch},
   ) => {
     try {
-      // 🔐 SECURITY: Use secure Cloud Function endpoint
-      // This validates permissions, rate limits, and status transitions server-side
-      await secureUpdateTaskStatus({
-        taskId,
-        newStatus: status,
-      });
+      await apiClient.put(`/tasks/${taskId}`, {status});
 
-      // Audit log is created automatically by Cloud Function
-      // No need to dispatch createAuditLog here
+      // Create audit log
+      dispatch(
+        createAuditLog({
+          action: 'task:status_changed',
+          performedBy: {
+            id: userId,
+            name: userName || '',
+            role: userRole || 'ADMIN',
+          },
+          entityType: 'Task',
+          entityId: taskId,
+          previousValue: previousStatus,
+          newValue: status,
+        }),
+      );
 
       notifyUserStatusChange(taskId, status, userId).catch(() => {});
       return {taskId, status};
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Update failed');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Update failed');
     }
   },
 );
@@ -252,25 +285,36 @@ export const addTaskComment = createAsyncThunk(
     {rejectWithValue, dispatch},
   ) => {
     try {
-      // 🔐 SECURITY: Use secure Cloud Function endpoint
-      // This validates permissions and rate limits server-side
-      const result = await secureAddTaskComment({
+      // Note: Backend doesn't have task comments endpoint yet
+      // This would need to be added
+      // For now, just create audit log
+      dispatch(
+        createAuditLog({
+          action: 'task:comment_added',
+          performedBy: {
+            id: authorId,
+            name: authorName,
+            role: authorRole,
+          },
+          entityType: 'Task',
+          entityId: taskId,
+          details: {comment: text},
+        }),
+      );
+
+      return {
         taskId,
-        text,
-      });
-
-      // Fetch updated task to get the comment
-      const taskDoc = await firestore().collection('issues').doc(taskId).get();
-      const taskData = taskDoc.data()!;
-      const comments = taskData.comments || [];
-      const comment = comments.find((c: any) => c.id === result.commentId);
-
-      // Audit log is created automatically by Cloud Function
-      // No need to dispatch createAuditLog here
-
-      return {taskId, comment: comment || {id: result.commentId, text, authorId, authorName, authorRole, createdAt: new Date()}};
+        comment: {
+          id: Date.now().toString(),
+          text,
+          authorId,
+          authorName,
+          authorRole,
+          createdAt: new Date(),
+        },
+      };
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Failed to add comment');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Failed to add comment');
     }
   },
 );
@@ -285,6 +329,16 @@ const taskSlice = createSlice({
   },
   extraReducers: builder => {
     builder
+      .addCase(fetchTasks.pending, state => {
+        state.loading = true;
+      })
+      .addCase(fetchTasks.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+      })
+      .addCase(fetchTasks.rejected, state => {
+        state.loading = false;
+      })
       .addCase(startTaskListener.pending, state => {
         state.loading = true;
       })
@@ -319,7 +373,7 @@ const taskSlice = createSlice({
             ? {
                 ...task,
                 status,
-                resolvedAt: status === 'RESOLVED' ? new Date() : task.resolvedAt,
+                resolvedAt: status === 'COMPLETED' ? Date.now() : task.resolvedAt,
               }
             : task,
         );
@@ -344,4 +398,3 @@ export const startTasksForRole =
     dispatch(stopTaskListener());
     dispatch(startTaskListener({role, userId}));
   };
-

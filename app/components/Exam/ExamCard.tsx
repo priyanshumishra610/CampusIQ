@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import {Exam, ExamType} from '../../redux/slices/examSlice';
 
 type Props = {
@@ -90,9 +91,12 @@ const ExamCard = ({exam, onPress}: Props) => {
 
       {exam.conflictWarnings && exam.conflictWarnings.length > 0 && (
         <View style={styles.conflictWarning}>
-          <Text style={styles.conflictText}>
-            ⚠️ {exam.conflictWarnings.length} conflict{exam.conflictWarnings.length > 1 ? 's' : ''} detected
-          </Text>
+          <View style={styles.conflictTextContainer}>
+            <Icon name="warning" size={16} color="#e74c3c" style={{marginRight: 4}} />
+            <Text style={styles.conflictText}>
+              {exam.conflictWarnings.length} conflict{exam.conflictWarnings.length > 1 ? 's' : ''} detected
+            </Text>
+          </View>
         </View>
       )}
 
@@ -223,6 +227,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#ffc107',
+  },
+  conflictTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   conflictText: {
     color: '#856404',

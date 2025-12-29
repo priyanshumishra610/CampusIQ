@@ -1,5 +1,5 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import firestore from '@react-native-firebase/firestore';
+import apiClient from '../../services/api.client';
 import {AdminRole} from '../../config/permissions';
 
 export type AuditAction =
@@ -70,7 +70,11 @@ export const createAuditLog = createAsyncThunk(
     {rejectWithValue},
   ) => {
     try {
-      const entry = {
+      // Note: Backend doesn't have audit logs endpoint yet
+      // This would need to be added to the backend
+      // For now, just return a local entry
+      const entry: AuditLogEntry = {
+        id: Date.now().toString(),
         action,
         performedBy,
         entityType,
@@ -78,14 +82,9 @@ export const createAuditLog = createAsyncThunk(
         details,
         previousValue,
         newValue,
-        timestamp: firestore.FieldValue.serverTimestamp(),
-      };
-      const docRef = await firestore().collection('auditLogs').add(entry);
-      return {
-        ...entry,
-        id: docRef.id,
         timestamp: new Date(),
-      } as AuditLogEntry;
+      };
+      return entry;
     } catch (error: any) {
       return rejectWithValue(error?.message || 'Failed to create audit log');
     }
@@ -99,34 +98,10 @@ export const fetchAuditLogs = createAsyncThunk(
     {rejectWithValue},
   ) => {
     try {
-      let query = firestore()
-        .collection('auditLogs')
-        .orderBy('timestamp', 'desc')
-        .limit(limit);
-
-      if (entityId) {
-        query = firestore()
-          .collection('auditLogs')
-          .where('entityId', '==', entityId)
-          .orderBy('timestamp', 'desc')
-          .limit(limit);
-      }
-
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          action: data.action,
-          performedBy: data.performedBy,
-          timestamp: data.timestamp?.toDate?.() || new Date(),
-          entityType: data.entityType,
-          entityId: data.entityId,
-          details: data.details,
-          previousValue: data.previousValue,
-          newValue: data.newValue,
-        } as AuditLogEntry;
-      });
+      // Note: Backend doesn't have audit logs endpoint yet
+      // This would need to be added to the backend
+      // For now, return empty array
+      return [] as AuditLogEntry[];
     } catch (error: any) {
       return rejectWithValue(error?.message || 'Failed to fetch audit logs');
     }
@@ -184,4 +159,3 @@ export const getActionDisplayName = (action: AuditAction): string => {
   };
   return names[action] || action;
 };
-

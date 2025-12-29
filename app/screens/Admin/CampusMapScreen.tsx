@@ -436,7 +436,9 @@ const CampusMapScreen = () => {
               key={location.id}
               style={styles.searchResultItem}
               onPress={() => handleSelectSearchResult(location)}>
-              <Text style={styles.searchResultIcon}>{location.icon}</Text>
+              <View style={styles.searchResultIconContainer}>
+                <Icon name={location.icon} size={20} color="#1e3a5f" />
+              </View>
               <View style={styles.searchResultText}>
                 <Text style={styles.searchResultName}>{location.name}</Text>
                 <Text style={styles.searchResultDesc}>{location.description}</Text>
@@ -589,7 +591,7 @@ const CampusMapScreen = () => {
                   description: location.type === 'medical' ? 'Medical assistance' : location.type === 'security' ? 'Security office' : 'Main exit',
                   coordinate: location.coordinate,
                   type: location.type,
-                  icon: location.type === 'medical' ? '🏥' : location.type === 'security' ? '🛡️' : '🚪',
+                  icon: location.type === 'medical' ? 'local-hospital' : location.type === 'security' ? 'security' : 'exit-to-app',
                 }}
                 onPress={handleLocationPress}
                 selected={nearestEmergency?.location.id === location.id}
@@ -751,9 +753,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f4f6f9',
   },
-  searchResultIcon: {
-    fontSize: 24,
+  searchResultIconContainer: {
     marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchResultText: {
     flex: 1,

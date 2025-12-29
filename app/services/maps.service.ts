@@ -1,6 +1,8 @@
 import Geolocation from '@react-native-community/geolocation';
 import {PermissionsAndroid, Platform} from 'react-native';
 import {CAMPUS_COORDINATES, CAMPUS_ADDRESS} from '../config/maps.config';
+import apiClient from './api.client';
+import socketClient from './socket.client';
 
 /**
  * Get current device location
@@ -33,6 +35,46 @@ export const getCurrentLocation = async (): Promise<{
 };
 
 /**
+ * Get map locations from backend
+ */
+export const getMapLocations = async (category?: string): Promise<any[]> => {
+  try {
+    const params = category ? {category} : {};
+    const data = await apiClient.get('/maps/locations', params);
+    return data.map((location: any) => ({
+      ...location,
+      coordinate: {
+        latitude: location.latitude,
+        longitude: location.longitude,
+      },
+    }));
+  } catch (error: any) {
+    console.error('Error fetching map locations:', error);
+    return [];
+  }
+};
+
+/**
+ * Get geofence zones from backend
+ */
+export const getGeofenceZones = async (): Promise<any[]> => {
+  try {
+    const data = await apiClient.get('/maps/geofences');
+    return data.map((zone: any) => ({
+      ...zone,
+      center: {
+        latitude: zone.centerLatitude,
+        longitude: zone.centerLongitude,
+      },
+      radius: zone.radiusMeters,
+    }));
+  } catch (error: any) {
+    console.error('Error fetching geofence zones:', error);
+    return [];
+  }
+};
+
+/**
  * Geocode an address to coordinates using Google Geocoding API
  * Note: Requires GOOGLE_MAPS_API_KEY to be set
  */
@@ -42,7 +84,7 @@ export const geocodeAddress = async (
   try {
     // In production, use your backend to call Google Geocoding API
     // For now, return fallback coordinates
-    // TODO: Implement actual geocoding via backend API
+    // TODO (Phase 2): Implement actual geocoding via backend API endpoint /maps/geocode
     return CAMPUS_COORDINATES;
   } catch (error) {
     console.warn('Geocoding failed:', error);
@@ -157,42 +199,55 @@ export const calculateDistance = (
  * Check if a coordinate is within a restricted zone
  * Returns the zone if breached, null otherwise
  */
-export const checkGeofenceBreach = (
+export const checkGeofenceBreach = async (
   coordinate: {latitude: number; longitude: number},
-  zones: Array<{
-    id: string;
-    name: string;
-    type: 'polygon' | 'circle';
-    coordinates?: Array<{latitude: number; longitude: number}>;
-    center?: {latitude: number; longitude: number};
-    radius?: number;
-    severity: 'low' | 'medium' | 'high';
-    description: string;
-  }>,
-): {id: string; name: string; severity: 'low' | 'medium' | 'high'; description: string} | null => {
-  for (const zone of zones) {
-    if (zone.type === 'polygon' && zone.coordinates) {
-      if (isPointInPolygon(coordinate, zone.coordinates)) {
-        return {
-          id: zone.id,
-          name: zone.name,
-          severity: zone.severity,
-          description: zone.description,
-        };
-      }
-    } else if (zone.type === 'circle' && zone.center && zone.radius) {
-      const distance = calculateDistance(coordinate, zone.center);
-      if (distance <= zone.radius) {
-        return {
-          id: zone.id,
-          name: zone.name,
-          severity: zone.severity,
-          description: zone.description,
-        };
+): Promise<{id: string; name: string; severity: 'low' | 'medium' | 'high'; description: string} | null> => {
+  try {
+    const zones = await getGeofenceZones();
+    
+    for (const zone of zones) {
+      if (zone.type === 'polygon' && zone.coordinates) {
+        if (isPointInPolygon(coordinate, zone.coordinates)) {
+          // Emit breach event
+          socketClient.emit('geofence-breach', {
+            zoneId: zone.id,
+            zoneName: zone.name,
+            coordinate,
+            severity: zone.severity,
+          });
+          
+          return {
+            id: zone.id,
+            name: zone.name,
+            severity: zone.severity,
+            description: zone.description,
+          };
+        }
+      } else if (zone.type === 'circle' && zone.center && zone.radius) {
+        const distance = calculateDistance(coordinate, zone.center);
+        if (distance <= zone.radius) {
+          // Emit breach event
+          socketClient.emit('geofence-breach', {
+            zoneId: zone.id,
+            zoneName: zone.name,
+            coordinate,
+            severity: zone.severity,
+          });
+          
+          return {
+            id: zone.id,
+            name: zone.name,
+            severity: zone.severity,
+            description: zone.description,
+          };
+        }
       }
     }
+    return null;
+  } catch (error) {
+    console.error('Error checking geofence breach:', error);
+    return null;
   }
-  return null;
 };
 
 /**
@@ -238,8 +293,7 @@ export const findNearestEmergencyLocation = (
 };
 
 /**
- * Future-ready: Push notification for geo-fence breach
- * This is a placeholder structure for backend integration
+ * Push notification for geo-fence breach via backend
  */
 export const pushGeofenceNotification = async (
   zoneId: string,
@@ -247,12 +301,149 @@ export const pushGeofenceNotification = async (
   severity: 'low' | 'medium' | 'high',
   coordinate: {latitude: number; longitude: number},
 ): Promise<void> => {
-  // TODO: Implement backend API call to send push notification
-  // Example structure:
-  // await fetch('/api/geofence/alert', {
-  //   method: 'POST',
-  //   body: JSON.stringify({ zoneId, zoneName, severity, coordinate }),
-  // });
-  console.log('Geo-fence notification would be sent:', {zoneId, zoneName, severity, coordinate});
+  try {
+    // Emit via socket for real-time notification
+    socketClient.emit('geofence-breach', {
+      zoneId,
+      zoneName,
+      severity,
+      coordinate,
+    });
+  } catch (error) {
+    console.error('Error sending geofence notification:', error);
+  }
 };
 
+/**
+ * Emergency Mode: Get emergency route to nearest facility
+ */
+export const getEmergencyRoute = async (
+  currentLocation: {latitude: number; longitude: number},
+  facilityType: 'medical' | 'security' | 'exit',
+  emergencyLocations: Array<{
+    id: string;
+    name: string;
+    coordinate: {latitude: number; longitude: number};
+    type: 'medical' | 'security' | 'exit';
+    priority: number;
+  }>,
+): Promise<{
+  destination: {
+    id: string;
+    name: string;
+    coordinate: {latitude: number; longitude: number};
+  };
+  distance: number;
+  estimatedTime: string;
+  route?: Array<{latitude: number; longitude: number}>;
+} | null> => {
+  try {
+    // Filter by type
+    const filteredLocations = emergencyLocations.filter(loc => loc.type === facilityType);
+    
+    if (filteredLocations.length === 0) {
+      return null;
+    }
+    
+    // Find nearest
+    const nearest = findNearestEmergencyLocation(currentLocation, filteredLocations);
+    if (!nearest) {
+      return null;
+    }
+    
+    // Calculate route (simplified - in production would use Google Directions API)
+    const route = generateSimpleRoute(currentLocation, nearest.location.coordinate);
+    
+    // Estimate time (walking speed 5 km/h)
+    const distanceKm = nearest.distance / 1000;
+    const timeMinutes = Math.round((distanceKm / 5) * 60);
+    
+    return {
+      destination: {
+        id: nearest.location.id,
+        name: nearest.location.name,
+        coordinate: nearest.location.coordinate,
+      },
+      distance: nearest.distance,
+      estimatedTime: `${timeMinutes} min`,
+      route,
+    };
+  } catch (error) {
+    console.error('Error getting emergency route:', error);
+    return null;
+  }
+};
+
+/**
+ * Generate simple route between two points (straight line with waypoints)
+ * In production, use Google Directions API for actual routing
+ */
+const generateSimpleRoute = (
+  origin: {latitude: number; longitude: number},
+  destination: {latitude: number; longitude: number},
+): Array<{latitude: number; longitude: number}> => {
+  const route: Array<{latitude: number; longitude: number}> = [origin];
+  
+  // Add intermediate points for smoother route visualization
+  const steps = 10;
+  for (let i = 1; i < steps; i++) {
+    const ratio = i / steps;
+    route.push({
+      latitude: origin.latitude + (destination.latitude - origin.latitude) * ratio,
+      longitude: origin.longitude + (destination.longitude - origin.longitude) * ratio,
+    });
+  }
+  
+  route.push(destination);
+  return route;
+};
+
+/**
+ * Monitor location for geo-fence breaches (for background monitoring)
+ */
+export const startGeofenceMonitoring = (
+  onBreach: (zone: {id: string; name: string; severity: string; description: string}) => void,
+  zones: Array<{
+    id: string;
+    name: string;
+    type: 'polygon' | 'circle';
+    coordinates?: Array<{latitude: number; longitude: number}>;
+    center?: {latitude: number; longitude: number};
+    radius?: number;
+    severity: 'low' | 'medium' | 'high';
+    description: string;
+  }>,
+  interval: number = 30000, // 30 seconds default
+): (() => void) => {
+  let monitoring = true;
+  
+  const checkLocation = async () => {
+    if (!monitoring) return;
+    
+    try {
+      const location = await getCurrentLocation();
+      if (location) {
+        const breach = await checkGeofenceBreach(
+          {latitude: location.lat, longitude: location.lng},
+        );
+        
+        if (breach) {
+          onBreach(breach);
+        }
+      }
+    } catch (error) {
+      console.error('Error in geofence monitoring:', error);
+    }
+    
+    if (monitoring) {
+      setTimeout(checkLocation, interval);
+    }
+  };
+  
+  checkLocation();
+  
+  // Return stop function
+  return () => {
+    monitoring = false;
+  };
+};

@@ -1,7 +1,4 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import firestore, {
-  FirebaseFirestoreTypes,
-} from '@react-native-firebase/firestore';
 import {AppDispatch, RootState} from '../store';
 import {UserProfile} from './authSlice';
 import {AdminRole} from '../../config/permissions';
@@ -12,7 +9,11 @@ import {
   securePublishExamResults,
   detectExamConflicts,
   ExamConflict,
+  getCourseExams,
+  getExamById,
 } from '../../services/exam.service';
+import apiClient from '../../services/api.client';
+import socketClient from '../../services/socket.client';
 
 export type ExamStatus = 'DRAFT' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 export type ExamType = 'MIDTERM' | 'FINAL' | 'QUIZ' | 'ASSIGNMENT' | 'PROJECT';
@@ -24,7 +25,7 @@ export type Exam = {
   courseName: string;
   examType: ExamType;
   status: ExamStatus;
-  scheduledDate: FirebaseFirestoreTypes.Timestamp | Date;
+  scheduledDate: Date | number;
   startTime: string; // HH:mm format
   endTime: string; // HH:mm format
   duration: number; // minutes
@@ -36,9 +37,9 @@ export type Exam = {
   instructions?: string;
   createdBy: string;
   createdByName?: string;
-  createdAt: FirebaseFirestoreTypes.Timestamp | Date;
-  updatedAt?: FirebaseFirestoreTypes.Timestamp | Date;
-  publishedAt?: FirebaseFirestoreTypes.Timestamp | Date;
+  createdAt: Date | number;
+  updatedAt?: Date | number;
+  publishedAt?: Date | number;
   conflictWarnings?: ExamConflict[];
   aiSuggestions?: string;
 };
@@ -75,51 +76,65 @@ const initialState: ExamState = {
   conflictChecking: false,
 };
 
+// Fetch exams (replaces real-time listener)
+export const fetchExams = createAsyncThunk(
+  'exams/fetch',
+  async (
+    {role, userId, courseId}: {role: UserProfile['role']; userId: string; courseId?: string},
+    {rejectWithValue},
+  ) => {
+    try {
+      let exams: Exam[] = [];
+      
+      if (courseId) {
+        exams = await getCourseExams(courseId);
+      } else {
+        // Get all exams for user's courses
+        // Note: This would need backend support for user's enrolled courses
+        const data = await apiClient.get('/exams', {});
+        exams = data.map((exam: any) => ({
+          ...exam,
+          scheduledDate: exam.examDate ? new Date(exam.examDate).getTime() : Date.now(),
+          createdAt: exam.createdAt ? new Date(exam.createdAt).getTime() : Date.now(),
+          updatedAt: exam.updatedAt ? new Date(exam.updatedAt).getTime() : undefined,
+          publishedAt: exam.publishedAt ? new Date(exam.publishedAt).getTime() : undefined,
+          enrolledStudents: [],
+          studentCount: 0,
+        }));
+      }
+      
+      return exams;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Failed to fetch exams');
+    }
+  },
+);
+
 export const startExamListener = createAsyncThunk<
   () => void,
   {role: UserProfile['role']; userId: string}
 >('exams/startListener', async ({role, userId}, {dispatch}) => {
-  const collectionRef = firestore().collection('exams');
-  const queryRef =
-    role === 'ADMIN'
-      ? collectionRef.orderBy('scheduledDate', 'asc')
-      : collectionRef
-          .where('createdBy', '==', userId)
-          .orderBy('scheduledDate', 'asc');
-
-  const unsubscribe = queryRef.onSnapshot(snapshot => {
-    const exams = snapshot.docs.map<Exam>(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        title: data.title,
-        courseCode: data.courseCode,
-        courseName: data.courseName,
-        examType: data.examType,
-        status: data.status,
-        scheduledDate: data.scheduledDate,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        duration: data.duration,
-        room: data.room,
-        building: data.building,
-        capacity: data.capacity,
-        enrolledStudents: data.enrolledStudents || [],
-        studentCount: data.studentCount || 0,
-        instructions: data.instructions,
-        createdBy: data.createdBy,
-        createdByName: data.createdByName,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-        publishedAt: data.publishedAt,
-        conflictWarnings: data.conflictWarnings,
-        aiSuggestions: data.aiSuggestions,
-      };
-    });
-    dispatch(setExams(exams));
+  // Set up Socket.IO listener for real-time updates
+  const unsubscribe = socketClient.on('notification', (data: any) => {
+    if (data.type === 'EXAM') {
+      // Refresh exams when exam-related notification received
+      dispatch(fetchExams({role, userId}));
+    }
   });
 
-  return unsubscribe;
+  // Initial fetch
+  dispatch(fetchExams({role, userId}));
+
+  // Poll for updates every 30 seconds
+  const pollInterval = setInterval(() => {
+    dispatch(fetchExams({role, userId}));
+  }, 30000);
+
+  // Return cleanup function
+  return () => {
+    unsubscribe();
+    clearInterval(pollInterval);
+  };
 });
 
 export const stopExamListener = createAsyncThunk<void, void, {state: RootState}>(
@@ -137,66 +152,54 @@ export const createExam = createAsyncThunk(
   async (
     {
       title,
-      courseCode,
-      courseName,
-      examType,
-      scheduledDate,
-      startTime,
-      endTime,
-      duration,
-      room,
-      building,
-      capacity,
+      courseId,
+      examDate,
+      durationMinutes,
+      maxMarks,
+      venue,
       instructions,
-      enrolledStudents,
+      description,
     }: {
       title: string;
-      courseCode: string;
-      courseName: string;
-      examType: ExamType;
-      scheduledDate: Date;
-      startTime: string;
-      endTime: string;
-      duration: number;
-      room?: string;
-      building?: string;
-      capacity: number;
+      courseId: string;
+      examDate: Date;
+      durationMinutes: number;
+      maxMarks: number;
+      venue?: string;
       instructions?: string;
-      enrolledStudents?: string[];
+      description?: string;
     },
     {rejectWithValue},
   ) => {
     try {
       const result = await secureCreateExam({
         title,
-        courseCode,
-        courseName,
-        examType,
-        scheduledDate: scheduledDate.toISOString(),
-        startTime,
-        endTime,
-        duration,
-        room,
-        building,
-        capacity,
+        courseId,
+        examDate: examDate.toISOString(),
+        durationMinutes,
+        maxMarks,
+        venue,
         instructions,
-        enrolledStudents: enrolledStudents || [],
+        description,
       });
 
       const examId = result.examId;
 
       // Fetch the created exam to return it
-      const examDoc = await firestore().collection('exams').doc(examId).get();
-      const examData = examDoc.data()!;
+      const exam = await getExamById(examId);
+      if (!exam) {
+        throw new Error('Failed to fetch created exam');
+      }
 
       return {
-        id: examId,
-        ...examData,
-        scheduledDate: examData.scheduledDate?.toDate?.() || new Date(),
-        createdAt: examData.createdAt?.toDate?.() || new Date(),
+        ...exam,
+        scheduledDate: exam.examDate,
+        createdAt: exam.createdAt,
+        enrolledStudents: [],
+        studentCount: 0,
       } as Exam;
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Could not create exam');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Could not create exam');
     }
   },
 );
@@ -211,30 +214,20 @@ export const updateExam = createAsyncThunk(
       examId: string;
       updates: Partial<{
         title: string;
-        courseCode: string;
-        courseName: string;
-        examType: ExamType;
-        scheduledDate: Date;
-        startTime: string;
-        endTime: string;
-        duration: number;
-        room: string;
-        building: string;
-        capacity: number;
+        description: string;
+        examDate: Date;
+        durationMinutes: number;
+        maxMarks: number;
+        venue: string;
         instructions: string;
-        enrolledStudents: string[];
-        status: ExamStatus;
       }>;
     },
     {rejectWithValue},
   ) => {
     try {
       const updateData: any = {...updates};
-      if (updates.scheduledDate) {
-        updateData.scheduledDate = updates.scheduledDate.toISOString();
-      }
-      if (updates.enrolledStudents) {
-        updateData.enrolledStudents = updates.enrolledStudents;
+      if (updates.examDate) {
+        updateData.examDate = updates.examDate.toISOString();
       }
 
       await secureUpdateExam({
@@ -243,18 +236,21 @@ export const updateExam = createAsyncThunk(
       });
 
       // Fetch updated exam
-      const examDoc = await firestore().collection('exams').doc(examId).get();
-      const examData = examDoc.data()!;
+      const exam = await getExamById(examId);
+      if (!exam) {
+        throw new Error('Failed to fetch updated exam');
+      }
 
       return {
-        id: examId,
-        ...examData,
-        scheduledDate: examData.scheduledDate?.toDate?.() || new Date(),
-        createdAt: examData.createdAt?.toDate?.() || new Date(),
-        updatedAt: examData.updatedAt?.toDate?.() || new Date(),
+        ...exam,
+        scheduledDate: exam.examDate,
+        createdAt: exam.createdAt,
+        updatedAt: exam.updatedAt,
+        enrolledStudents: [],
+        studentCount: 0,
       } as Exam;
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Could not update exam');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Could not update exam');
     }
   },
 );
@@ -269,7 +265,7 @@ export const deleteExam = createAsyncThunk(
       await secureDeleteExam({examId});
       return examId;
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Could not delete exam');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Could not delete exam');
     }
   },
 );
@@ -287,7 +283,7 @@ export const publishExamResults = createAsyncThunk(
       });
       return {examId, results};
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Could not publish results');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Could not publish results');
     }
   },
 );
@@ -323,7 +319,7 @@ export const checkExamConflicts = createAsyncThunk(
       });
       return conflicts;
     } catch (error: any) {
-      return rejectWithValue(error?.message || 'Could not check conflicts');
+      return rejectWithValue(error?.response?.data?.error || error?.message || 'Could not check conflicts');
     }
   },
 );
@@ -341,6 +337,16 @@ const examSlice = createSlice({
   },
   extraReducers: builder => {
     builder
+      .addCase(fetchExams.pending, state => {
+        state.loading = true;
+      })
+      .addCase(fetchExams.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+      })
+      .addCase(fetchExams.rejected, state => {
+        state.loading = false;
+      })
       .addCase(startExamListener.pending, state => {
         state.loading = true;
       })
@@ -417,5 +423,3 @@ export const startExamsForRole =
     dispatch(stopExamListener());
     dispatch(startExamListener({role, userId}));
   };
-
-

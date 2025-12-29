@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import {Marker} from 'react-native-maps';
 
 export interface CampusLocation {
@@ -31,7 +32,7 @@ export const CampusMarker: React.FC<CampusMarkerProps> = ({
       onPress={() => onPress(location)}
       anchor={{x: 0.5, y: 0.5}}>
       <View style={[styles.markerContainer, selected && styles.markerSelected]}>
-        <Text style={styles.markerIcon}>{location.icon}</Text>
+        <Icon name={location.icon} size={24} color="#1e3a5f" />
         {selected && <View style={styles.markerPulse} />}
       </View>
     </Marker>
@@ -58,9 +59,6 @@ const styles = StyleSheet.create({
     borderColor: '#64b5f6',
     transform: [{scale: 1.2}],
   },
-  markerIcon: {
-    fontSize: 24,
-  },
   markerPulse: {
     position: 'absolute',
     width: 48,
@@ -71,4 +69,6 @@ const styles = StyleSheet.create({
     transform: [{scale: 1.5}],
   },
 });
+
+
 

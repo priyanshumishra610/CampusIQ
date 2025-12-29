@@ -6,7 +6,11 @@ import RootNavigator from './navigation/RootNavigator';
 import {initAuthListener} from './redux/slices/authSlice';
 import {registerDeviceToken} from './services/notification.service';
 import {seedDemoData} from './services/demoSeed.service';
-import firebase from './services/firebase';
+import {ThemeProvider, useTheme} from './theme/ThemeContext';
+import ErrorBoundary from './components/Common/ErrorBoundary';
+import socketClient from './services/socket.client';
+import {useSelector} from 'react-redux';
+import {RootState} from './redux/store';
 
 type BootState = 'booting' | 'ready' | 'error';
 
@@ -68,31 +72,18 @@ const Splash = ({message, onRetry}: {message?: string; onRetry: () => void}) => 
   </SafeAreaView>
 );
 
-const isFirebaseReady = () => {
-  try {
-    // Check if Firebase app is initialized
-    const app = firebase.app();
-    if (!app) {
-      return false;
-    }
-    // Verify Firebase app name (default app should exist)
-    const appName = app.name;
-    return appName === '[DEFAULT]' || appName.length > 0;
-  } catch (error) {
-    console.warn('Firebase initialization check failed:', error);
-    return false;
-  }
-};
 
 const Bootstrapper = ({onError}: {onError: (message: string) => void}) => {
   const dispatch = useDispatch<AppDispatch>();
+  const {colors, theme} = useTheme();
+  const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
     const start = async () => {
       try {
         await dispatch(initAuthListener()).unwrap();
       } catch (error) {
-        onError('Startup failed. Check Firebase and restart the app.');
+        onError('Startup failed. Please restart the app.');
         return;
       }
       registerDeviceToken().catch(() => {});
@@ -101,9 +92,27 @@ const Bootstrapper = ({onError}: {onError: (message: string) => void}) => {
     start();
   }, [dispatch, onError]);
 
+  // Initialize Socket.IO when user is logged in
+  useEffect(() => {
+    if (user) {
+      socketClient.connect(user.id, user.role);
+    } else {
+      socketClient.disconnect();
+    }
+    
+    return () => {
+      if (!user) {
+        socketClient.disconnect();
+      }
+    };
+  }, [user]);
+
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: '#f4f6f9'}}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f4f6f9" />
+    <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
+      <StatusBar
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
       <RootNavigator />
     </SafeAreaView>
   );
@@ -156,11 +165,6 @@ const App = (): React.JSX.Element => {
     if (bootState !== 'booting') {
       return;
     }
-    if (!isFirebaseReady()) {
-      setBootMessage('Firebase is not configured. Update google-services files and restart.');
-      setBootState('error');
-      return;
-    }
     setBootState('ready');
   }, [bootState]);
 
@@ -169,26 +173,13 @@ const App = (): React.JSX.Element => {
   }
 
   return (
-    <AppBoundary onReset={handleReset}>
-      <Bootstrapper onError={handleError} />
-      {/* Temporary Firebase verification - Remove after verification */}
-      {bootState === 'ready' && (
-        <Text
-          style={{
-            position: 'absolute',
-            top: 50,
-            left: 20,
-            color: 'green',
-            fontSize: 12,
-            fontWeight: 'bold',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            padding: 4,
-            borderRadius: 4,
-          }}>
-          Firebase Configured!
-        </Text>
-      )}
-    </AppBoundary>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AppBoundary onReset={handleReset}>
+          <Bootstrapper onError={handleError} />
+        </AppBoundary>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

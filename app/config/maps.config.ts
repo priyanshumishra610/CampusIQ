@@ -36,7 +36,7 @@ export const CAMPUS_LOCATIONS = [
     description: 'Main administrative building',
     coordinate: {latitude: 21.1865, longitude: 81.3509},
     type: 'building',
-    icon: '🏛️',
+    icon: 'business',
   },
   {
     id: 'security-gate',
@@ -44,7 +44,7 @@ export const CAMPUS_LOCATIONS = [
     description: 'Main entrance and security checkpoint',
     coordinate: {latitude: 21.1863, longitude: 81.3507},
     type: 'security',
-    icon: '🚪',
+    icon: 'security',
   },
   {
     id: 'hostel-north',
@@ -52,7 +52,7 @@ export const CAMPUS_LOCATIONS = [
     description: 'Student accommodation - North Block',
     coordinate: {latitude: 21.1868, longitude: 81.3512},
     type: 'accommodation',
-    icon: '🏠',
+    icon: 'home',
   },
   {
     id: 'hostel-south',
@@ -60,7 +60,7 @@ export const CAMPUS_LOCATIONS = [
     description: 'Student accommodation - South Block',
     coordinate: {latitude: 21.1862, longitude: 81.3512},
     type: 'accommodation',
-    icon: '🏠',
+    icon: 'home',
   },
   {
     id: 'innovation-lab',
@@ -68,7 +68,7 @@ export const CAMPUS_LOCATIONS = [
     description: 'Research and development center',
     coordinate: {latitude: 21.1866, longitude: 81.3510},
     type: 'facility',
-    icon: '🔬',
+    icon: 'science',
   },
   {
     id: 'parking-main',
@@ -76,7 +76,7 @@ export const CAMPUS_LOCATIONS = [
     description: 'Primary parking area',
     coordinate: {latitude: 21.1864, longitude: 81.3508},
     type: 'parking',
-    icon: '🅿️',
+    icon: 'local-parking',
   },
   {
     id: 'library',
@@ -84,7 +84,7 @@ export const CAMPUS_LOCATIONS = [
     description: 'Main library and study area',
     coordinate: {latitude: 21.1867, longitude: 81.3509},
     type: 'facility',
-    icon: '📚',
+    icon: 'local-library',
   },
   {
     id: 'cafeteria',
@@ -92,7 +92,7 @@ export const CAMPUS_LOCATIONS = [
     description: 'Main dining hall',
     coordinate: {latitude: 21.1865, longitude: 81.3511},
     type: 'facility',
-    icon: '🍽️',
+    icon: 'restaurant',
   },
 ];
 

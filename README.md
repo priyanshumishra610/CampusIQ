@@ -40,6 +40,52 @@ Enterprise-grade activity tracking:
 
 ---
 
+## 🚀 Major Update: Backend Migration
+
+**CampusIQ has been migrated from Firebase to a production-ready Node.js + PostgreSQL backend!**
+
+### What Changed
+
+- ✅ **New Backend**: Node.js + Express + PostgreSQL
+- ✅ **RESTful API**: Comprehensive REST endpoints for all features
+- ✅ **Real-time Updates**: Socket.IO for live notifications and updates
+- ✅ **JWT Authentication**: Secure token-based authentication
+- ✅ **Docker Support**: Easy deployment with Docker Compose
+- ✅ **All Features Preserved**: Attendance, assignments, exams, notifications, AI, maps, and more
+
+### Quick Start
+
+**Backend:**
+```bash
+cd backend
+npm install
+cp .env.example .env
+# Edit .env with your settings
+createdb campusiq
+npm run migrate
+npm run seed  # Creates test users
+npm run dev
+```
+
+**Frontend:**
+```bash
+npm install
+# Set API_BASE_URL in .env (default: http://localhost:3000/api)
+npm start
+npm run android  # or npm run ios
+```
+
+**Docker (Alternative):**
+```bash
+cd backend
+docker-compose up -d
+```
+
+📚 **For detailed migration guide, see [FIREBASE_TO_POSTGRESQL_MIGRATION.md](./FIREBASE_TO_POSTGRESQL_MIGRATION.md)**  
+📚 **For API documentation, see [docs/BACKEND_MIGRATION.md](./docs/BACKEND_MIGRATION.md)**
+
+---
+
 ## Overview
 
 CampusIQ transforms how academic institutions manage their administrative workflows. Unlike student-facing applications, CampusIQ is purpose-built for executive leadership and senior staff, offering:
@@ -82,8 +128,8 @@ CampusIQ transforms how academic institutions manage their administrative workfl
 ### 🔐 Security & Trust Layer
 
 * Role-based access control
-* Firebase Authentication
-* Secure APIs and encrypted transport
+* JWT-based authentication
+* Secure REST APIs and encrypted transport
 * Abuse prevention and rate limiting
 
 ---
@@ -100,7 +146,7 @@ CampusIQ transforms how academic institutions manage their administrative workfl
 
 ### Enterprise Architecture
 
-- **Firebase Backend** — Scalable, real-time database with offline persistence
+- **Node.js + PostgreSQL Backend** — Production-ready REST API with real-time Socket.IO updates
 - **Redux State Management** — Predictable application state with audit integration
 - **TypeScript** — Type-safe development
 - **React Native** — Cross-platform (Android primary, iOS ready)
@@ -124,23 +170,19 @@ CampusIQ is designed for authorized institutional personnel only:
 
 ```mermaid
 flowchart LR
-    StudentApp[Student Mobile App]
-    AdminApp[Admin Dashboard]
-    Firebase[Firebase Auth & Firestore]
-    Functions[Cloud Functions]
-    PubSub[Pub/Sub]
-    BigQuery[BigQuery Analytics]
+    MobileApp[React Native Mobile App]
+    Backend[Node.js + Express API]
+    PostgreSQL[(PostgreSQL Database)]
+    SocketIO[Socket.IO Real-time]
+    AI[Gemini AI]
     Maps[Google Maps SDK]
 
-    StudentApp --> Firebase
-    AdminApp --> Firebase
-    Firebase --> Functions
-    Functions --> PubSub
-    PubSub --> BigQuery
-    BigQuery --> Functions
-    Functions --> Firebase
-    Firebase --> Maps
-    Maps --> AdminApp
+    MobileApp --> Backend
+    Backend --> PostgreSQL
+    Backend --> SocketIO
+    Backend --> AI
+    MobileApp --> Maps
+    SocketIO --> MobileApp
 ```
 
 ---
@@ -212,40 +254,53 @@ npm run android
 npm run ios
 ```
 
-### Firebase Configuration
+### Backend Configuration
 
-1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable Authentication (Email/Password)
-3. Enable Firestore Database
-4. Enable Cloud Messaging
-5. Download configuration files:
-   - `google-services.json` → `/android/app/`
-   - `GoogleService-Info.plist` → `/ios/CRM/`
+1. **Set up PostgreSQL database:**
+   ```bash
+   createdb campusiq
+   ```
 
-### Firestore Collections
+2. **Configure backend environment:**
+   ```bash
+   cd backend
+   cp .env.example .env
+   # Edit .env with your database credentials and API keys
+   ```
 
-```
-users/
-  - id, name, email, role, adminRole, department
+3. **Run database migrations:**
+   ```bash
+   npm run migrate
+   ```
 
-issues/ (tasks)
-  - id, title, description, category, priority, status
-  - createdBy, createdByName, createdAt, resolvedAt
-  - aiSummary, location, imageBase64, comments
+4. **Seed test data (optional):**
+   ```bash
+   npm run seed
+   ```
 
-auditLogs/
-  - action, performedBy, timestamp, entityType, entityId
-  - details, previousValue, newValue
-```
-
-### Environment Variables
+### Frontend Configuration
 
 Create a `.env` file in the project root:
 
 ```env
-GEMINI_API_KEY=your_gemini_api_key
-FCM_SERVER_KEY=your_fcm_server_key
+API_BASE_URL=http://localhost:3000/api
+# For Android emulator: http://10.0.2.2:3000/api
+# For iOS simulator: http://localhost:3000/api
+# For production: https://your-api-domain.com/api
 ```
+
+### Database Schema
+
+The PostgreSQL database includes tables for:
+- Users, Courses, Enrollments
+- Attendance, Assignments, Exams
+- Notifications, Announcements, Events
+- Security (SOS alerts, incidents)
+- AI chat logs, Audit logs
+- Maps, Geofence zones
+- And more...
+
+See `backend/src/database/schema.sql` for complete schema.
 
 ---
 
@@ -274,14 +329,13 @@ Without introducing surveillance risk.
 * React Native
 * Google Maps SDK
 
-### Backend & Cloud
+### Backend & Database
 
-* Firebase Authentication
-* Firestore
-* Google Cloud Functions
-* Google Cloud Pub/Sub
-* Google BigQuery
-* Google Cloud Scheduler
+* Node.js + Express
+* PostgreSQL
+* Socket.IO (Real-time)
+* JWT Authentication
+* Gemini AI Integration
 
 ### Security
 
@@ -294,17 +348,16 @@ Without introducing surveillance risk.
 
 ## Security
 
-CampusIQ implements **enterprise-grade zero-trust security** with multiple layers of protection:
+CampusIQ implements **enterprise-grade security** with multiple layers of protection:
 
-- **Zero-Trust Architecture** — Frontend is untrusted; all authorization happens server-side via Cloud Functions
-- **Authentication** — Firebase Auth with institutional email verification
-- **Server-Side Authorization** — Cloud Functions validate permissions, rate limits, and input on every request
-- **Role Escalation Prevention** — Role fields are immutable from client; only Cloud Functions can modify roles
-- **Rate Limiting & Abuse Detection** — Per-user rate limits prevent scraping and flooding (10 tasks/hour, 20 status changes/hour)
-- **Immutable Audit Trail** — Append-only audit logs created server-side; cannot be deleted or modified
-- **Security Event Logging** — All violations, permission denials, and suspicious activity logged to `securityEvents` collection
-- **Defense-in-Depth** — Firestore security rules provide additional layer of protection
+- **JWT Authentication** — Secure token-based authentication with expiration
+- **Server-Side Authorization** — API endpoints validate permissions and roles on every request
+- **Role-Based Access Control** — Granular permissions enforced at the API level
+- **Rate Limiting** — Protection against abuse and excessive requests
+- **Immutable Audit Trail** — Complete activity logging in PostgreSQL
 - **Transport Security** — HTTPS/TLS for all network communications
+- **SQL Injection Protection** — Parameterized queries prevent SQL injection
+- **Input Validation** — All inputs validated and sanitized
 
 **📚 For detailed security documentation, see [SECURITY.md](./SECURITY.md)**
 
