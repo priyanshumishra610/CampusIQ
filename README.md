@@ -44,10 +44,11 @@ Traditional systems fail because they are:
 
 ✔ One unified system  
 ✔ AI & Intelligence First  
-✔ Enterprise-grade UI
+✔ Enterprise-grade UI  
 ✔ Modern HR + Academics + Safety in one place  
 ✔ Premium experience  
-✔ Designed for daily real-world usage
+✔ Designed for daily real-world usage  
+
 
 ---
 
@@ -180,6 +181,7 @@ CampusIQ supports full enterprise RBAC:
 - HR_STAFF
 
 Each role has its own
+
 ✔ Dashboard  
 ✔ Sidebar  
 ✔ Navigation  
