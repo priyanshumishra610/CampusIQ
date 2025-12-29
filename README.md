@@ -257,11 +257,14 @@ B --> I[Security & Emergency Engine]
 CampusIQ is engineered with:
 
 ✔ Scalable architecture
-✔ Role-based security
-✔ Modular codebase
-✔ Documentation ready
-✔ Production mindset
 
+✔ Role-based security
+
+✔ Modular codebase
+
+✔ Documentation ready
+
+✔ Production mindset
 ---
 
 # 🚀 Setup & Installation
